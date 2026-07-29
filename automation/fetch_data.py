@@ -186,6 +186,7 @@ def generate_html(records):
     </div>
     <div class="jw-controls">
       <select id="jwRecWeight" class="jw-select">
+        <option value="0.8">REC 가중치 0.8</option>
         <option value="1.0">REC 가중치 1.0</option>
         <option value="1.2" selected>REC 가중치 1.2</option>
         <option value="1.5">REC 가중치 1.5</option>
