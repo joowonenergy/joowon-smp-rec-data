@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 현황</title>
 <style>
-  body { margin:0; font-family:'Pretendard',sans-serif; }
-  #jwHero { position:relative; background:#F7FAFD; overflow:hidden; min-height:832px; }
+  body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
+  #jwHero { position:relative; background:#E4EBF7; overflow:hidden; min-height:832px; }
   .jw-bg-svg { position:absolute; top:0; left:0; display:block; width:100%; height:100%; }
   .jw-header { position:relative; padding:90px 56px 0; text-align:center; }
   .jw-eyebrow { font-size:20px; color:#0F6E56; font-weight:700; margin-bottom:16px; }
@@ -16,7 +16,7 @@
   .jw-controls { display:flex; justify-content:center; gap:14px; margin-bottom:56px; }
   .jw-select { background:#fff; border:1px solid #9CA3AF; border-radius:10px; padding:14px 20px; font-size:18px; font-weight:700; color:#132E80; cursor:pointer; }
   .jw-cards { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:0 56px 90px; max-width:1240px; margin:0 auto; }
-  .jw-card { background:#fff; border:1px solid #9CA3AF; border-radius:16px; padding:36px; }
+  .jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:36px; box-shadow:0 4px 16px rgba(19,46,128,0.08); }
   .jw-card-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; font-size:19px; font-weight:700; color:#1F2937; }
   .jw-card-date { font-size:15px; font-weight:400; color:#6B7280; }
   .jw-card-value { font-size:42px; font-weight:800; color:#132E80; }
@@ -100,7 +100,6 @@
 </div>
 <script>
 var jwData = [{"date": "2026-07-29", "smp_land": 137.27, "smp_jeju": 137.27, "rec": 71730}, {"date": "2026-07-28", "smp_land": 126.31, "smp_jeju": 130.9, "rec": 71200}, {"date": "2026-07-27", "smp_land": 125.9, "smp_jeju": 129.5, "rec": 70800}, {"date": "2026-07-26", "smp_land": 124.1, "smp_jeju": 128.2, "rec": 70500}, {"date": "2026-07-25", "smp_land": 123.75, "smp_jeju": 127.8, "rec": 70600}, {"date": "2026-07-24", "smp_land": 122.3, "smp_jeju": 126.4, "rec": 71000}, {"date": "2026-07-23", "smp_land": 121.85, "smp_jeju": 125.9, "rec": 71730}];
-
 function jwUpdateValues() {
   if (!jwData || jwData.length === 0) return;
   var today = jwData[0];
@@ -108,30 +107,24 @@ function jwUpdateValues() {
   var weight = parseFloat(document.getElementById('jwRecWeight').value);
   var region = document.getElementById('jwRegion').value;
   var regionLabel = region === 'jeju' ? '제주' : '육지';
-
   var smpToday = Number(region === 'jeju' ? today.smp_jeju : today.smp_land) || 0;
   var smpYesterday = Number(region === 'jeju' ? yesterday.smp_jeju : yesterday.smp_land) || 0;
   var recToday = Number(today.rec) || 0;
   var recYesterday = Number(yesterday.rec) || 0;
-
   var smpDelta = smpToday - smpYesterday;
   var recDelta = recToday - recYesterday;
   var smpPlus = smpToday + (recToday * weight) / 1000;
-
   document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
   document.getElementById('jwSmpLabel').textContent = 'SMP (' + regionLabel + ')';
   document.getElementById('jwSmpDate').textContent = today.date;
   document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
   document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
-
   document.getElementById('jwRecDate').textContent = today.date;
   document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
   document.getElementById('jwRecDelta').innerHTML = (recDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(recDelta).toLocaleString() + ' (전일대비)';
-
   document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
   document.getElementById('jwSmpPlusNote').textContent = 'SMP + REC×' + weight.toFixed(1) + ' 가중치 반영';
 }
-
 document.getElementById('jwRecWeight').addEventListener('change', jwUpdateValues);
 document.getElementById('jwRegion').addEventListener('change', jwUpdateValues);
 jwUpdateValues();
