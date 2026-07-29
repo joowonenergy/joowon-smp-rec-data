@@ -1,0 +1,38 @@
+name: Update SMP REC Data
+
+on:
+  schedule:
+    # 매일 한국시간(KST) 오전 9시에 실행 (UTC 기준 0시 = KST 9시)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 수동 실행 버튼도 사용 가능하게
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 필요한 패키지 설치
+        run: pip install requests
+
+      - name: SMP REC 데이터 수집 및 갱신
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python automation/fetch_data.py
+
+      - name: 변경사항 커밋 및 푸시
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/smp-rec.json
+          git diff --quiet --cached || git commit -m "chore: SMP/REC 데이터 자동 갱신 $(date +'%Y-%m-%d')"
+          git push
