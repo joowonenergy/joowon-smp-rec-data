@@ -3,6 +3,10 @@
 - 매일 GitHub Actions가 이 스크립트를 실행해서 data/smp-rec.json을 자동 업데이트합니다.
 - docs/index.html: 히어로 카드 페이지 (GitHub Pages)
 - docs/trend.html: 최근 30일 추이 그래프 페이지 (GitHub Pages)
+
+* 2026-07-30: API가 육지/제주 SMP를 동일한 값으로 잘못 제공하는 문제를 확인.
+  주원에너지 사업장은 전부 육지(경남 김해) 소재이므로, 육지 기준 SMP 단일값만
+  사용하도록 구조를 단순화함 (KPX 공식 사이트 대조 검증 완료, 육지 값 자체는 정확함).
 """
 
 import json
@@ -31,6 +35,7 @@ def today_kst_dashed():
 
 
 def fetch_smp(date_str):
+    """육지 기준 SMP 단일값을 반환한다 (주원에너지 사업장이 전부 육지 소재이므로)."""
     params = {
         "serviceKey": SERVICE_KEY,
         "pageNo": 1,
@@ -42,23 +47,20 @@ def fetch_smp(date_str):
         res = requests.get(SMP_URL, params=params, timeout=15)
         res.raise_for_status()
         data = res.json()
-        print("[DEBUG] SMP 전체 응답:", data)
         result_code = data["response"]["header"]["resultCode"]
         if result_code != "00":
             print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
-            return None, None
+            return None
         items = data["response"]["body"]["items"]["item"]
         land_values = [float(i["smp"]) for i in items if i["areaName"] == "육지"]
-        jeju_values = [float(i["smp"]) for i in items if i["areaName"] == "제주"]
-        if not land_values or not jeju_values:
-            print("[SMP] 육지 또는 제주 데이터가 비어있음")
-            return None, None
-        smp_land = round(sum(land_values) / len(land_values), 2)
-        smp_jeju = round(sum(jeju_values) / len(jeju_values), 2)
-        return smp_land, smp_jeju
+        if not land_values:
+            print("[SMP] 육지 데이터가 비어있음")
+            return None
+        smp = round(sum(land_values) / len(land_values), 2)
+        return smp
     except Exception as e:
         print(f"[SMP] 요청 실패: {e}")
-        return None, None
+        return None
 
 
 def fetch_rec(date_str):
@@ -103,6 +105,13 @@ def save_data(records):
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(records, f, ensure_ascii=False, indent=2)
     return records
+
+
+def get_smp(record):
+    """신규 'smp' 필드와, 이전 스키마의 'smp_land' 필드 모두 호환 처리."""
+    if record.get("smp") is not None:
+        return record["smp"]
+    return record.get("smp_land")
 
 
 def generate_html(records):
@@ -187,15 +196,11 @@ def generate_html(records):
         <option value="1.2" selected>REC 가중치 1.2</option>
         <option value="1.5">REC 가중치 1.5</option>
       </select>
-      <select id="jwRegion" class="jw-select">
-        <option value="land">육지</option>
-        <option value="jeju" selected>제주</option>
-      </select>
     </div>
   </div>
   <div class="jw-cards">
     <div class="jw-card">
-      <div class="jw-card-top"><span id="jwSmpLabel">SMP</span><span id="jwSmpDate" class="jw-card-date"></span></div>
+      <div class="jw-card-top"><span>SMP</span><span id="jwSmpDate" class="jw-card-date"></span></div>
       <div class="jw-card-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
       <div id="jwSmpDelta" class="jw-delta"></div>
     </div>
@@ -213,22 +218,23 @@ def generate_html(records):
 </div>
 <script>
 var jwData = REPLACE_WITH_JSON;
+function jwGetSmp(rec) {
+  if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
+  return Number(rec.smp_land) || 0;
+}
 function jwUpdateValues() {
   if (!jwData || jwData.length === 0) return;
   var today = jwData[0];
   var yesterday = jwData[1] || today;
   var weight = parseFloat(document.getElementById('jwRecWeight').value);
-  var region = document.getElementById('jwRegion').value;
-  var regionLabel = region === 'jeju' ? '제주' : '육지';
-  var smpToday = Number(region === 'jeju' ? today.smp_jeju : today.smp_land) || 0;
-  var smpYesterday = Number(region === 'jeju' ? yesterday.smp_jeju : yesterday.smp_land) || 0;
+  var smpToday = jwGetSmp(today);
+  var smpYesterday = jwGetSmp(yesterday);
   var recToday = Number(today.rec) || 0;
   var recYesterday = Number(yesterday.rec) || 0;
   var smpDelta = smpToday - smpYesterday;
   var recDelta = recToday - recYesterday;
   var smpPlus = smpToday + (recToday * weight) / 1000;
   document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
-  document.getElementById('jwSmpLabel').textContent = 'SMP (' + regionLabel + ')';
   document.getElementById('jwSmpDate').textContent = today.date;
   document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
   document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
@@ -239,7 +245,6 @@ function jwUpdateValues() {
   document.getElementById('jwSmpPlusNote').textContent = 'SMP + REC×' + weight.toFixed(1) + ' 가중치 반영';
 }
 document.getElementById('jwRecWeight').addEventListener('change', jwUpdateValues);
-document.getElementById('jwRegion').addEventListener('change', jwUpdateValues);
 jwUpdateValues();
 </script>
 </body>
@@ -256,8 +261,7 @@ def generate_trend_html(records):
     """최근 30일 추이 그래프 페이지 (docs/trend.html)"""
     trend = list(reversed(records[:30]))
     labels = [r["date"][5:] for r in trend]
-    land = [r["smp_land"] for r in trend]
-    jeju = [r["smp_jeju"] for r in trend]
+    smp = [get_smp(r) for r in trend]
     rec = [r["rec"] for r in trend]
 
     html = """<!DOCTYPE html>
@@ -277,7 +281,6 @@ def generate_trend_html(records):
   .jw-legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; font-size:14px; font-weight:700; color:#374151; }
   .jw-legend span { display:flex; align-items:center; gap:6px; }
   .jw-dot-blue { width:10px; height:10px; border-radius:2px; background:#132E80; }
-  .jw-dot-green { width:10px; height:10px; border-radius:2px; background:#34B686; }
   .jw-dot-coral { width:10px; height:10px; border-radius:2px; background:#D85A30; }
   .jw-chart-box { position:relative; height:340px; }
 </style>
@@ -291,20 +294,18 @@ def generate_trend_html(records):
   </div>
   <div class="jw-trend-card">
     <div class="jw-legend">
-      <span><span class="jw-dot-blue"></span>SMP 육지</span>
-      <span><span class="jw-dot-green"></span>SMP 제주</span>
+      <span><span class="jw-dot-blue"></span>SMP</span>
       <span><span class="jw-dot-coral"></span>REC (우측 축)</span>
     </div>
     <div class="jw-chart-box">
-      <canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP 육지, 제주, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
+      <canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
     </div>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 var labels = REPLACE_LABELS;
-var land = REPLACE_LAND;
-var jeju = REPLACE_JEJU;
+var smp = REPLACE_SMP;
 var rec = REPLACE_REC;
 var flowOffset = 0;
 var flowPlugin = {
@@ -320,8 +321,7 @@ var flowPlugin = {
 var jwChart = new Chart(document.getElementById('jwTrendChart'), {
   type: 'line',
   data: { labels: labels, datasets: [
-    { label:'SMP 육지', data: land, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
-    { label:'SMP 제주', data: jeju, borderColor:'#34B686', backgroundColor:'rgba(52,182,134,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
+    { label:'SMP', data: smp, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
     { label:'REC', data: rec, borderColor:'#D85A30', borderWidth:2, borderDash:[6,4], pointRadius:0, yAxisID:'y1' }
   ]},
   options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{
@@ -338,8 +338,7 @@ animateFlow();
 </html>"""
 
     html = html.replace("REPLACE_LABELS", json.dumps(labels, ensure_ascii=False))
-    html = html.replace("REPLACE_LAND", json.dumps(land))
-    html = html.replace("REPLACE_JEJU", json.dumps(jeju))
+    html = html.replace("REPLACE_SMP", json.dumps(smp))
     html = html.replace("REPLACE_REC", json.dumps(rec))
 
     os.makedirs("docs", exist_ok=True)
@@ -358,16 +357,15 @@ def main():
 
     print(f"=== {date_dashed} 데이터 수집 시작 ===")
 
-    smp_land, smp_jeju = fetch_smp(date_compact)
+    smp = fetch_smp(date_compact)
     rec_price = fetch_rec(date_compact)
 
     records = load_existing_data()
 
-    if smp_land is None or smp_jeju is None:
+    if smp is None:
         if records:
             print("SMP 조회 실패 → 직전 값 유지")
-            smp_land = records[0]["smp_land"]
-            smp_jeju = records[0]["smp_jeju"]
+            smp = get_smp(records[0])
         else:
             print("SMP 조회 실패 & 기존 데이터도 없음 → 종료")
             sys.exit(1)
@@ -382,8 +380,7 @@ def main():
 
     new_record = {
         "date": date_dashed,
-        "smp_land": smp_land,
-        "smp_jeju": smp_jeju,
+        "smp": smp,
         "rec": rec_price,
     }
 
