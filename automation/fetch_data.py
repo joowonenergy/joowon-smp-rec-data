@@ -42,17 +42,13 @@ def fetch_smp(date_str):
         res = requests.get(SMP_URL, params=params, timeout=15)
         res.raise_for_status()
         data = res.json()
-        print("[DEBUG] SMP 전체 응답:", json.dumps(data, ensure_ascii=False))
         result_code = data["response"]["header"]["resultCode"]
         if result_code != "00":
             print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
             return None, None
         items = data["response"]["body"]["items"]["item"]
-        print("[DEBUG] items 개수:", len(items) if isinstance(items, list) else 1)
         land_values = [float(i["smp"]) for i in items if i["areaName"] == "육지"]
         jeju_values = [float(i["smp"]) for i in items if i["areaName"] == "제주"]
-        print("[DEBUG] land_values:", land_values)
-        print("[DEBUG] jeju_values:", jeju_values)
         if not land_values or not jeju_values:
             print("[SMP] 육지 또는 제주 데이터가 비어있음")
             return None, None
@@ -125,8 +121,9 @@ def generate_html(records):
   .jw-header { position:relative; padding:90px 56px 0; text-align:center; }
   .jw-eyebrow { font-size:20px; color:#0F6E56; font-weight:700; margin-bottom:16px; }
   .jw-title { font-size:clamp(48px,6vw,68px); font-weight:800; color:#132E80; margin-bottom:20px; }
-  .jw-date { display:inline-flex; align-items:center; gap:8px; font-size:20px; color:#1F2937; font-weight:700; margin-bottom:36px; }
+  .jw-date { display:inline-flex; align-items:center; gap:8px; font-size:20px; color:#1F2937; font-weight:700; margin-bottom:12px; }
   .jw-dot { width:8px; height:8px; border-radius:50%; background:#34B686; display:inline-block; }
+  .jw-disclaimer { font-size:13px; color:#9CA3AF; margin-bottom:36px; }
   .jw-controls { display:flex; justify-content:center; gap:14px; margin-bottom:56px; }
   .jw-select { background:#fff; border:1px solid #9CA3AF; border-radius:10px; padding:14px 20px; font-size:18px; font-weight:700; color:#132E80; cursor:pointer; }
   .jw-cards { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:0 56px 90px; max-width:1240px; margin:0 auto; }
@@ -181,6 +178,7 @@ def generate_html(records):
       <span class="jw-dot"></span>
       <span id="jwDateLabel">-</span> (매일 자동 갱신)
     </div>
+    <div class="jw-disclaimer">* SMP는 하루전 발전계획 예측치 기준이며, 실제 정산가와 다를 수 있습니다.</div>
     <div class="jw-controls">
       <select id="jwRecWeight" class="jw-select">
         <option value="0.8">REC 가중치 0.8</option>
