@@ -42,6 +42,7 @@ def fetch_smp(date_str):
         res = requests.get(SMP_URL, params=params, timeout=15)
         res.raise_for_status()
         data = res.json()
+        print("[DEBUG] SMP 전체 응답:", data)
         result_code = data["response"]["header"]["resultCode"]
         if result_code != "00":
             print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
