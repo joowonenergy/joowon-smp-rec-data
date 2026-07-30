@@ -2,7 +2,7 @@ name: Update SMP REC Data
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 매일 한국시간(KST) 오전 9시에 실행 (UTC 기준 0시 = KST 9시)
+    - cron: '53 23 * * *'  # 매일 한국시간(KST) 오전 8시 53분에 실행 (UTC 기준 전날 23시 53분 = KST 8시 53분)
   workflow_dispatch: # 수동 실행 버튼도 사용 가능하게
 
 permissions:
