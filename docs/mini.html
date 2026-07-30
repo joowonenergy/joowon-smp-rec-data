@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 미니 위젯</title>
-<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
   * { box-sizing: border-box; }
   body { margin:0; font-family:'Pretendard',sans-serif; background:transparent; }
-  #jwMini { max-width:1200px; margin:0 auto; padding:32px 28px; background:#E4EBF7; border-radius:24px; }
+  #jwMini { max-width:none; margin:0 auto; padding:32px 28px; background:#E4EBF7; border-radius:24px; }
+  .jw-mini-inner { max-width:1100px; margin:0 auto; }
   .jw-mini-head { text-align:center; margin-bottom:32px; }
   .jw-mini-eyebrow { font-size:15px; font-weight:800; color:#34B686; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
   .jw-mini-title { font-size:36px; font-weight:900; color:#132E80; margin-bottom:10px; }
@@ -33,6 +34,7 @@
 </head>
 <body>
 <div id="jwMini">
+  <div class="jw-mini-inner">
   <div class="jw-mini-head">
     <div class="jw-mini-eyebrow">SMP · REC</div>
     <div class="jw-mini-title">실시간 시장 현황</div>
@@ -55,7 +57,8 @@
       <div class="jw-mini-delta" style="color:#0F6E56;">REC 가중치 1.2 반영</div>
     </div>
   </div>
-  <div class="jw-mini-more"><a href="https://joowonenergy.github.io/joowon-smp-rec-data/" target="_top">추이 및 상세 보기 →</a></div>
+  <div class="jw-mini-more"><a href="https://onerec.kmos.kr/portal/index.do" target="_blank" rel="noopener">추이 및 상세 보기 →</a></div>
+  </div>
 </div>
 <script>
 fetch('https://raw.githubusercontent.com/joowonenergy/joowon-smp-rec-data/main/data/smp-rec.json')
