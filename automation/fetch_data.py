@@ -42,13 +42,17 @@ def fetch_smp(date_str):
         res = requests.get(SMP_URL, params=params, timeout=15)
         res.raise_for_status()
         data = res.json()
+        print("[DEBUG] SMP 전체 응답:", json.dumps(data, ensure_ascii=False))
         result_code = data["response"]["header"]["resultCode"]
         if result_code != "00":
             print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
             return None, None
         items = data["response"]["body"]["items"]["item"]
+        print("[DEBUG] items 개수:", len(items) if isinstance(items, list) else 1)
         land_values = [float(i["smp"]) for i in items if i["areaName"] == "육지"]
         jeju_values = [float(i["smp"]) for i in items if i["areaName"] == "제주"]
+        print("[DEBUG] land_values:", land_values)
+        print("[DEBUG] jeju_values:", jeju_values)
         if not land_values or not jeju_values:
             print("[SMP] 육지 또는 제주 데이터가 비어있음")
             return None, None
