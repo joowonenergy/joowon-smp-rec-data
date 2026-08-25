@@ -7,6 +7,8 @@
 * 2026-07-30: API가 육지/제주 SMP를 동일한 값으로 잘못 제공하는 문제를 확인.
   주원에너지 사업장은 전부 육지(경남 김해) 소재이므로, 육지 기준 SMP 단일값만
   사용하도록 구조를 단순화함 (KPX 공식 사이트 대조 검증 완료, 육지 값 자체는 정확함).
+* 2026-08-25: REC는 매주 화·목요일에만 고시되므로, REC 카드의 "전일대비" 증감 표시를
+  제거하고 정적 안내 문구로 대체. 카드 디자인을 아이콘+컬러 상단바 스타일로 리뉴얼.
 """
 
 import json
@@ -19,6 +21,7 @@ import requests
 SERVICE_KEY = os.environ.get("DATA_GO_KR_KEY", "")
 JSON_PATH = "data/smp-rec.json"
 KEEP_DAYS = 90
+REC_WEIGHT = 1.2  # 화면에 고정 표기되는 REC 가중치
 
 SMP_URL = "https://apis.data.go.kr/B552115/SmpWithForecastDemand/getSmpWithForecastDemand"
 REC_URL = "https://apis.data.go.kr/B552115/RecMarketInfo2/getRecMarketInfo2"
@@ -115,7 +118,7 @@ def get_smp(record):
 
 
 def generate_html(records):
-    """히어로 카드 페이지 (docs/index.html)"""
+    """히어로 카드 페이지 (docs/index.html) — 아이콘+컬러 상단바 카드 스타일"""
     records_json = json.dumps(records[:30], ensure_ascii=False)
 
     html = """<!DOCTYPE html>
@@ -125,99 +128,60 @@ def generate_html(records):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 현황</title>
 <style>
+  * { box-sizing: border-box; }
   body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
-  #jwHero { position:relative; background:#E4EBF7; overflow:hidden; min-height:832px; }
-  .jw-bg-svg { position:absolute; top:0; left:0; display:block; width:100%; height:100%; }
-  .jw-header { position:relative; padding:90px 56px 0; text-align:center; }
-  .jw-eyebrow { font-size:20px; color:#0F6E56; font-weight:700; margin-bottom:16px; }
-  .jw-title { font-size:clamp(48px,6vw,68px); font-weight:800; color:#132E80; margin-bottom:20px; }
-  .jw-date { display:inline-flex; align-items:center; gap:8px; font-size:20px; color:#1F2937; font-weight:700; margin-bottom:12px; }
-  .jw-dot { width:8px; height:8px; border-radius:50%; background:#34B686; display:inline-block; }
-  .jw-disclaimer { font-size:13px; color:#9CA3AF; margin-bottom:36px; }
-  .jw-controls { display:flex; justify-content:center; gap:14px; margin-bottom:56px; }
-  .jw-select { background:#fff; border:1px solid #9CA3AF; border-radius:10px; padding:14px 20px; font-size:18px; font-weight:700; color:#132E80; cursor:pointer; }
-  .jw-cards { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:0 56px 90px; max-width:1240px; margin:0 auto; }
-  .jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:36px; box-shadow:0 4px 16px rgba(19,46,128,0.08); }
-  .jw-card-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; font-size:19px; font-weight:700; color:#1F2937; }
-  .jw-card-date { font-size:15px; font-weight:400; color:#6B7280; }
-  .jw-card-value { font-size:42px; font-weight:800; color:#132E80; }
-  .jw-unit { font-size:20px; font-weight:400; color:#6B7280; }
-  .jw-delta { font-size:18px; font-weight:700; color:#B94A1F; margin-top:14px; }
-  .jw-card-highlight { background:#EAF9F1; border:3px solid #34B686; }
-  .jw-highlight-label { font-size:22px; font-weight:800; color:#0F6E56; margin-bottom:18px; }
-  .jw-highlight-value { color:#0F6E56; font-size:46px; }
-  .jw-highlight-unit { color:#0F6E56; }
-  .jw-highlight-note { font-size:16px; font-weight:600; color:#0F6E56; margin-top:14px; }
+  .jw-widget { max-width:1120px; margin:0 auto; padding:60px 24px; text-align:center; }
+  .jw-accent { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 20px; }
+  .jw-eyebrow { font-size:15px; font-weight:700; color:#0F6E56; letter-spacing:0.04em; margin-bottom:12px; }
+  .jw-title { font-size:clamp(28px,4vw,36px); font-weight:800; color:#132E80; margin-bottom:10px; }
+  .jw-date { font-size:15px; color:#9CA3AF; margin-bottom:36px; }
+  .jw-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:left; }
+  .jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:28px 24px;
+    border-top:4px solid #34B686; box-shadow:0 4px 14px rgba(19,46,128,0.06); }
+  .jw-card-navy { border-top-color:#132E80; background:#F5F7FC; }
+  .jw-icon { width:40px; height:40px; border-radius:50%; background:#EAF9F1; display:flex;
+    align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
+  .jw-card-navy .jw-icon { background:#E4EAF8; }
+  .jw-label { font-size:15px; font-weight:600; color:#4B5563; margin-bottom:10px; }
+  .jw-value { font-size:32px; font-weight:800; color:#132E80; }
+  .jw-unit { font-size:16px; font-weight:400; color:#9CA3AF; }
+  .jw-delta { font-size:14px; font-weight:700; color:#B94A1F; margin-top:12px; }
+  .jw-note { font-size:13px; color:#6B7280; margin-top:12px; line-height:1.5; }
+  @media (max-width:640px){
+    .jw-cards{ grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
-<div id="jwHero">
-  <svg width="100%" height="100%" viewBox="0 0 1200 832" preserveAspectRatio="none" class="jw-bg-svg">
-    <defs>
-      <radialGradient id="jwGlow1" cx="15%" cy="5%" r="55%">
-        <stop offset="0%" stop-color="#34B686" stop-opacity="0.14"/>
-        <stop offset="100%" stop-color="#34B686" stop-opacity="0"/>
-      </radialGradient>
-      <radialGradient id="jwGlow2" cx="90%" cy="95%" r="55%">
-        <stop offset="0%" stop-color="#132E80" stop-opacity="0.09"/>
-        <stop offset="100%" stop-color="#132E80" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect x="0" y="0" width="1200" height="832" fill="url(#jwGlow1)"/>
-    <rect x="0" y="0" width="1200" height="832" fill="url(#jwGlow2)"/>
-    <g stroke="#132E80" stroke-opacity="0.12">
-      <line x1="80" y1="0" x2="80" y2="832"/><line x1="200" y1="0" x2="200" y2="832"/><line x1="320" y1="0" x2="320" y2="832"/><line x1="440" y1="0" x2="440" y2="832"/><line x1="560" y1="0" x2="560" y2="832"/><line x1="680" y1="0" x2="680" y2="832"/><line x1="800" y1="0" x2="800" y2="832"/><line x1="920" y1="0" x2="920" y2="832"/><line x1="1040" y1="0" x2="1040" y2="832"/><line x1="1160" y1="0" x2="1160" y2="832"/>
-    </g>
-    <g stroke="#132E80" stroke-opacity="0.08">
-      <line x1="0" y1="90" x2="1200" y2="90"/><line x1="0" y1="210" x2="1200" y2="210"/><line x1="0" y1="330" x2="1200" y2="330"/><line x1="0" y1="450" x2="1200" y2="450"/><line x1="0" y1="570" x2="1200" y2="570"/><line x1="0" y1="690" x2="1200" y2="690"/><line x1="0" y1="800" x2="1200" y2="800"/>
-    </g>
-    <path id="jwP1" d="M 0 140 Q 300 40 600 100 T 1200 60" fill="none" stroke="#34B686" stroke-width="2" stroke-opacity="0.35"/>
-    <path id="jwP2" d="M 0 390 Q 300 300 600 360 T 1200 320" fill="none" stroke="#132E80" stroke-width="1.5" stroke-opacity="0.2"/>
-    <path id="jwP3" d="M 0 610 Q 300 530 600 580 T 1200 550" fill="none" stroke="#34B686" stroke-width="1.5" stroke-opacity="0.25"/>
-    <rect x="-7" y="-7" width="14" height="14" fill="#34B686" fill-opacity="0.5"><animateMotion dur="10s" repeatCount="indefinite"><mpath href="#jwP1"/></animateMotion></rect>
-    <rect x="-6" y="-6" width="12" height="12" fill="#132E80" fill-opacity="0.35"><animateMotion dur="13s" repeatCount="indefinite" begin="-3s"><mpath href="#jwP1"/></animateMotion></rect>
-    <rect x="-6" y="-6" width="12" height="12" fill="#132E80" fill-opacity="0.35"><animateMotion dur="11s" repeatCount="indefinite"><mpath href="#jwP2"/></animateMotion></rect>
-    <rect x="-7" y="-7" width="14" height="14" fill="#34B686" fill-opacity="0.45"><animateMotion dur="14s" repeatCount="indefinite" begin="-5s"><mpath href="#jwP2"/></animateMotion></rect>
-    <rect x="-6" y="-6" width="12" height="12" fill="#34B686" fill-opacity="0.45"><animateMotion dur="12s" repeatCount="indefinite"><mpath href="#jwP3"/></animateMotion></rect>
-    <rect x="-7" y="-7" width="14" height="14" fill="#132E80" fill-opacity="0.3"><animateMotion dur="9s" repeatCount="indefinite" begin="-2s"><mpath href="#jwP3"/></animateMotion></rect>
-  </svg>
-  <div class="jw-header">
-    <div class="jw-eyebrow">실시간 태양광 시장 정보</div>
-    <div class="jw-title">SMP·REC 현황</div>
-    <div class="jw-date">
-      <span class="jw-dot"></span>
-      <span id="jwDateLabel">-</span> (매일 자동 갱신)
-    </div>
-    <div class="jw-disclaimer">* SMP는 하루전 발전계획 예측치 기준이며, 실제 정산가와 다를 수 있습니다.</div>
-    <div class="jw-controls">
-      <select id="jwRecWeight" class="jw-select">
-        <option value="0.8">REC 가중치 0.8</option>
-        <option value="1.0">REC 가중치 1.0</option>
-        <option value="1.2" selected>REC 가중치 1.2</option>
-        <option value="1.5">REC 가중치 1.5</option>
-      </select>
-    </div>
-  </div>
+<div class="jw-widget">
+  <div class="jw-accent"></div>
+  <div class="jw-eyebrow">SMP · REC</div>
+  <div class="jw-title">실시간 시장 현황</div>
+  <div class="jw-date" id="jwDateLabel">- 기준</div>
   <div class="jw-cards">
     <div class="jw-card">
-      <div class="jw-card-top"><span>SMP</span><span id="jwSmpDate" class="jw-card-date"></span></div>
-      <div class="jw-card-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+      <div class="jw-icon">⚡</div>
+      <div class="jw-label">SMP</div>
+      <div class="jw-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
       <div id="jwSmpDelta" class="jw-delta"></div>
     </div>
     <div class="jw-card">
-      <div class="jw-card-top"><span>REC</span><span id="jwRecDate" class="jw-card-date"></span></div>
-      <div class="jw-card-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
-      <div id="jwRecDelta" class="jw-delta"></div>
+      <div class="jw-icon">🌱</div>
+      <div class="jw-label">REC</div>
+      <div class="jw-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
+      <div class="jw-note">화·목요일에만 고시가가 갱신돼요</div>
     </div>
-    <div class="jw-card jw-card-highlight">
-      <div class="jw-highlight-label">1kW당 예상 수익</div>
-      <div class="jw-card-value jw-highlight-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit jw-highlight-unit"> 원/kWh</span></div>
-      <div id="jwSmpPlusNote" class="jw-highlight-note"></div>
+    <div class="jw-card jw-card-navy">
+      <div class="jw-icon">💰</div>
+      <div class="jw-label">1kW당 예상 수익</div>
+      <div class="jw-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+      <div class="jw-note">SMP + (REC × """ + str(REC_WEIGHT) + """)</div>
     </div>
   </div>
 </div>
 <script>
 var jwData = REPLACE_WITH_JSON;
+var REC_WEIGHT = """ + str(REC_WEIGHT) + """;
 function jwGetSmp(rec) {
   if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
   return Number(rec.smp_land) || 0;
@@ -226,25 +190,17 @@ function jwUpdateValues() {
   if (!jwData || jwData.length === 0) return;
   var today = jwData[0];
   var yesterday = jwData[1] || today;
-  var weight = parseFloat(document.getElementById('jwRecWeight').value);
   var smpToday = jwGetSmp(today);
   var smpYesterday = jwGetSmp(yesterday);
   var recToday = Number(today.rec) || 0;
-  var recYesterday = Number(yesterday.rec) || 0;
   var smpDelta = smpToday - smpYesterday;
-  var recDelta = recToday - recYesterday;
-  var smpPlus = smpToday + (recToday * weight) / 1000;
+  var smpPlus = smpToday + (recToday * REC_WEIGHT) / 1000;
   document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
-  document.getElementById('jwSmpDate').textContent = today.date;
   document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
   document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
-  document.getElementById('jwRecDate').textContent = today.date;
   document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
-  document.getElementById('jwRecDelta').innerHTML = (recDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(recDelta).toLocaleString() + ' (전일대비)';
   document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
-  document.getElementById('jwSmpPlusNote').textContent = 'SMP + REC×' + weight.toFixed(1) + ' 가중치 반영';
 }
-document.getElementById('jwRecWeight').addEventListener('change', jwUpdateValues);
 jwUpdateValues();
 </script>
 </body>
