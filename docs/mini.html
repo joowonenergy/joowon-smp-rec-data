@@ -10,34 +10,34 @@
 body { margin:0; font-family:'Pretendard',sans-serif; background:transparent; }
 #jwMini { max-width:none; margin:0 auto; padding:36px 28px; background:transparent; }
 .jw-mini-inner { max-width:1100px; margin:0 auto; background:#fff; border:1px solid #EAEBEF; border-radius:20px;
-  box-shadow:0 4px 20px rgba(19,46,128,0.05); padding:36px 40px; }
-.jw-mini-head { text-align:center; margin-bottom:28px; }
-.jw-mini-accent-bar { width:40px; height:3px; background:#34B686; border-radius:2px; margin:0 auto 16px; }
-.jw-mini-eyebrow { font-size:13px; font-weight:700; color:#6B7280; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
-.jw-mini-title { font-size:26px; font-weight:800; color:#132E80; }
+  box-shadow:0 4px 20px rgba(19,46,128,0.05); padding:44px 48px; }
+.jw-mini-head { text-align:center; margin-bottom:32px; }
+.jw-mini-accent-bar { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 18px; }
+.jw-mini-eyebrow { font-size:16px; font-weight:700; color:#6B7280; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px; }
+.jw-mini-title { font-size:34px; font-weight:800; color:#132E80; }
 .jw-mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid #EEF0F3;
-  border-bottom:1px solid #EEF0F3; padding:22px 0; margin-bottom:26px; }
-.jw-mini-stat { text-align:left; padding:0 24px; border-left:1px solid #EEF0F3; }
+  border-bottom:1px solid #EEF0F3; padding:28px 0; margin-bottom:30px; }
+.jw-mini-stat { text-align:left; padding:0 28px; border-left:1px solid #EEF0F3; }
 .jw-mini-stat:first-child { border-left:none; padding-left:0; }
-.jw-mini-stat-label { font-size:13px; font-weight:600; color:#9CA3AF; letter-spacing:0.01em; margin-bottom:4px; }
-.jw-mini-stat-date { font-size:12px; color:#C1C5CC; font-weight:500; margin-bottom:10px; }
-.jw-mini-stat-value { font-size:28px; font-weight:700; color:#1F2937; }
-.jw-mini-stat-unit { font-size:14px; font-weight:500; color:#9CA3AF; margin-left:3px; }
-.jw-mini-stat-delta { font-size:13px; font-weight:600; color:#B45309; margin-left:8px; }
-.jw-mini-note { font-size:12px; font-weight:500; color:#B0B4BB; margin-top:6px; }
-.jw-mini-legend { display:flex; gap:18px; margin-bottom:14px; font-size:12px; font-weight:600; color:#9CA3AF; }
-.jw-mini-legend span { display:flex; align-items:center; gap:6px; }
-.jw-dot-navy { width:8px; height:8px; border-radius:50%; background:#132E80; }
-.jw-dot-green { width:8px; height:8px; border-radius:50%; background:#34B686; }
-.jw-mini-chart-box { position:relative; height:200px; }
-.jw-mini-more { text-align:right; margin-top:16px; }
-.jw-mini-more a { font-size:13px; font-weight:600; color:#6B7280; text-decoration:none; }
+.jw-mini-stat-label { font-size:16px; font-weight:600; color:#9CA3AF; letter-spacing:0.01em; margin-bottom:6px; }
+.jw-mini-stat-date { font-size:14px; color:#C1C5CC; font-weight:500; margin-bottom:12px; }
+.jw-mini-stat-value { font-size:38px; font-weight:700; color:#1F2937; }
+.jw-mini-stat-unit { font-size:17px; font-weight:500; color:#9CA3AF; margin-left:4px; }
+.jw-mini-stat-delta { font-size:16px; font-weight:600; color:#B45309; margin-left:10px; }
+.jw-mini-note { font-size:14px; font-weight:500; color:#B0B4BB; margin-top:8px; }
+.jw-mini-legend { display:flex; gap:22px; margin-bottom:16px; font-size:15px; font-weight:600; color:#9CA3AF; }
+.jw-mini-legend span { display:flex; align-items:center; gap:8px; }
+.jw-dot-navy { width:10px; height:10px; border-radius:50%; background:#132E80; }
+.jw-dot-green { width:10px; height:10px; border-radius:50%; background:#34B686; }
+.jw-mini-chart-box { position:relative; height:240px; }
+.jw-mini-more { text-align:right; margin-top:20px; }
+.jw-mini-more a { font-size:16px; font-weight:600; color:#6B7280; text-decoration:none; }
 .jw-mini-more a:hover { color:#34B686; }
 @media (max-width:640px) {
-  .jw-mini-stats { grid-template-columns:1fr; gap:16px; }
-  .jw-mini-stat { border-left:none; padding-left:0; border-top:1px solid #EEF0F3; padding-top:16px; }
+  .jw-mini-stats { grid-template-columns:1fr; gap:20px; }
+  .jw-mini-stat { border-left:none; padding-left:0; border-top:1px solid #EEF0F3; padding-top:18px; }
   .jw-mini-stat:first-child { border-top:none; padding-top:0; }
-  .jw-mini-stat-value { font-size:24px; }
+  .jw-mini-stat-value { font-size:32px; }
 }
 </style>
 </head>
@@ -111,15 +111,15 @@ fetch('https://raw.githubusercontent.com/joowonenergy/joowon-smp-rec-data/main/d
   new Chart(document.getElementById('jwMiniChart'), {
     type: 'line',
     data: { labels: labels, datasets: [
-      { label:'SMP', data: smpSeries, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.06)', borderWidth:2, pointRadius:0, fill:true, tension:0.3 },
-      { label:'REC(환산)', data: recSeries, borderColor:'#34B686', backgroundColor:'rgba(52,182,134,0.08)', borderWidth:2, pointRadius:0, fill:true, tension:0 }
+      { label:'SMP', data: smpSeries, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.06)', borderWidth:2.5, pointRadius:0, fill:true, tension:0.3 },
+      { label:'REC(환산)', data: recSeries, borderColor:'#34B686', backgroundColor:'rgba(52,182,134,0.08)', borderWidth:2.5, pointRadius:0, fill:true, tension:0 }
     ]},
     options: {
       responsive:true, maintainAspectRatio:false, animation:false,
       plugins:{ legend:{ display:false } },
       scales:{
-        x:{ ticks:{ maxTicksLimit:6, color:'#9CA3AF', font:{size:11} }, grid:{ display:false } },
-        y:{ ticks:{ color:'#9CA3AF', font:{size:11} }, grid:{ color:'#F1F1F1' } }
+        x:{ ticks:{ maxTicksLimit:6, color:'#9CA3AF', font:{size:13} }, grid:{ display:false } },
+        y:{ ticks:{ color:'#9CA3AF', font:{size:13} }, grid:{ color:'#F1F1F1' } }
       }
     }
   });
