@@ -6,92 +6,125 @@
 <title>SMP·REC 미니 위젯</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <style>
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:'Pretendard',sans-serif; background:transparent; }
-  #jwMini { max-width:none; margin:0 auto; padding:32px 28px; background:transparent; }
-  .jw-mini-inner { max-width:1100px; margin:0 auto; }
-  .jw-mini-head { text-align:center; margin-bottom:32px; }
-  .jw-mini-accent-bar { width:48px; height:5px; background:#34B686; border-radius:3px; margin:0 auto 20px; }
-  .jw-mini-eyebrow { font-size:15px; font-weight:800; color:#34B686; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
-  .jw-mini-title { font-size:36px; font-weight:900; color:#132E80; margin-bottom:10px; }
-  .jw-mini-date { font-size:16px; color:#9CA3AF; font-weight:600; }
-  .jw-mini-row { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  .jw-mini-card { position:relative; background:#fff; border:1px solid #E5E7EB; border-radius:18px; padding:32px 28px 28px; box-shadow:0 8px 24px rgba(19,46,128,0.08); overflow:hidden; }
-  .jw-mini-card::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background:#34B686; }
-  .jw-mini-highlight::before { background:#132E80; }
-  .jw-mini-icon { width:44px; height:44px; border-radius:50%; background:#EAF9F1; display:flex; align-items:center; justify-content:center; margin-bottom:16px; font-size:20px; }
-  .jw-mini-highlight .jw-mini-icon { background:#E4EBF7; }
-  .jw-mini-label { font-size:20px; font-weight:700; color:#6B7280; margin-bottom:14px; }
-  .jw-mini-value { font-size:52px; font-weight:800; color:#132E80; }
-  .jw-mini-unit { font-size:20px; font-weight:500; color:#9CA3AF; margin-left:4px; }
-  .jw-mini-delta { font-size:17px; font-weight:700; color:#B94A1F; margin-top:12px; }
-  .jw-mini-highlight { background:#F7FAFF; border:1px solid #D8E2FA; }
-  .jw-mini-highlight .jw-mini-label { color:#132E80; }
-  .jw-mini-highlight .jw-mini-value { color:#132E80; }
-  .jw-mini-more { text-align:right; margin-top:22px; }
-  .jw-mini-more a { font-size:17px; font-weight:700; color:#34B686; text-decoration:none; }
-  .jw-mini-more a:hover { text-decoration:underline; }
-  @media (max-width:640px) {
-    .jw-mini-row { grid-template-columns:1fr; }
-    .jw-mini-value { font-size:44px; }
-  }
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Pretendard',sans-serif; background:transparent; }
+#jwMini { max-width:none; margin:0 auto; padding:36px 28px; background:transparent; }
+.jw-mini-inner { max-width:1100px; margin:0 auto; background:#fff; border:1px solid #EAEBEF; border-radius:20px;
+  box-shadow:0 4px 20px rgba(19,46,128,0.05); padding:36px 40px; }
+.jw-mini-head { text-align:center; margin-bottom:28px; }
+.jw-mini-accent-bar { width:40px; height:3px; background:#34B686; border-radius:2px; margin:0 auto 16px; }
+.jw-mini-eyebrow { font-size:13px; font-weight:700; color:#6B7280; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+.jw-mini-title { font-size:26px; font-weight:800; color:#132E80; }
+.jw-mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid #EEF0F3;
+  border-bottom:1px solid #EEF0F3; padding:22px 0; margin-bottom:26px; }
+.jw-mini-stat { text-align:left; padding:0 24px; border-left:1px solid #EEF0F3; }
+.jw-mini-stat:first-child { border-left:none; padding-left:0; }
+.jw-mini-stat-label { font-size:13px; font-weight:600; color:#9CA3AF; letter-spacing:0.01em; margin-bottom:4px; }
+.jw-mini-stat-date { font-size:12px; color:#C1C5CC; font-weight:500; margin-bottom:10px; }
+.jw-mini-stat-value { font-size:28px; font-weight:700; color:#1F2937; }
+.jw-mini-stat-unit { font-size:14px; font-weight:500; color:#9CA3AF; margin-left:3px; }
+.jw-mini-stat-delta { font-size:13px; font-weight:600; color:#B45309; margin-left:8px; }
+.jw-mini-note { font-size:12px; font-weight:500; color:#B0B4BB; margin-top:6px; }
+.jw-mini-legend { display:flex; gap:18px; margin-bottom:14px; font-size:12px; font-weight:600; color:#9CA3AF; }
+.jw-mini-legend span { display:flex; align-items:center; gap:6px; }
+.jw-dot-navy { width:8px; height:8px; border-radius:50%; background:#132E80; }
+.jw-dot-green { width:8px; height:8px; border-radius:50%; background:#34B686; }
+.jw-mini-chart-box { position:relative; height:200px; }
+.jw-mini-more { text-align:right; margin-top:16px; }
+.jw-mini-more a { font-size:13px; font-weight:600; color:#6B7280; text-decoration:none; }
+.jw-mini-more a:hover { color:#34B686; }
+@media (max-width:640px) {
+  .jw-mini-stats { grid-template-columns:1fr; gap:16px; }
+  .jw-mini-stat { border-left:none; padding-left:0; border-top:1px solid #EEF0F3; padding-top:16px; }
+  .jw-mini-stat:first-child { border-top:none; padding-top:0; }
+  .jw-mini-stat-value { font-size:24px; }
+}
 </style>
 </head>
 <body>
 <div id="jwMini">
-  <div class="jw-mini-inner">
+<div class="jw-mini-inner">
   <div class="jw-mini-head">
     <div class="jw-mini-accent-bar"></div>
     <div class="jw-mini-eyebrow">SMP · REC</div>
     <div class="jw-mini-title">실시간 시장 현황</div>
-    <div class="jw-mini-date" id="jwMiniDate">-</div>
   </div>
-  <div class="jw-mini-row">
-    <div class="jw-mini-card">
-      <div class="jw-mini-icon">⚡</div>
-      <div class="jw-mini-label">SMP</div>
-      <div class="jw-mini-value"><span id="jwMiniSmp">-</span><span class="jw-mini-unit">원/kWh</span></div>
-      <div class="jw-mini-delta" id="jwMiniSmpDelta"></div>
+
+  <div class="jw-mini-stats">
+    <div class="jw-mini-stat">
+      <div class="jw-mini-stat-label">SMP</div>
+      <div class="jw-mini-stat-date" id="jwMiniSmpDate">-</div>
+      <div><span class="jw-mini-stat-value" id="jwMiniSmp">-</span><span class="jw-mini-stat-unit">원/kWh</span><span class="jw-mini-stat-delta" id="jwMiniSmpDelta"></span></div>
     </div>
-    <div class="jw-mini-card">
-      <div class="jw-mini-icon">🌱</div>
-      <div class="jw-mini-label">REC</div>
-      <div class="jw-mini-value"><span id="jwMiniRec">-</span><span class="jw-mini-unit">원/REC</span></div>
-      <div class="jw-mini-delta" id="jwMiniRecDelta"></div>
+    <div class="jw-mini-stat">
+      <div class="jw-mini-stat-label">REC 현물</div>
+      <div class="jw-mini-stat-date" id="jwMiniRecDate">-</div>
+      <div><span class="jw-mini-stat-value" id="jwMiniRec">-</span><span class="jw-mini-stat-unit">원/REC</span></div>
+      <div class="jw-mini-note">화·목요일에만 고시가가 갱신돼요</div>
     </div>
-    <div class="jw-mini-card jw-mini-highlight">
-      <div class="jw-mini-icon">💰</div>
-      <div class="jw-mini-label">1kW당 예상 수익</div>
-      <div class="jw-mini-value"><span id="jwMiniPlus">-</span><span class="jw-mini-unit">원/kWh</span></div>
-      <div class="jw-mini-delta" style="color:#132E80;">REC 가중치 1.2 반영</div>
+    <div class="jw-mini-stat">
+      <div class="jw-mini-stat-label">SMP + (REC × 1.2)</div>
+      <div class="jw-mini-stat-date">1kW당 예상 수익</div>
+      <div><span class="jw-mini-stat-value" id="jwMiniPlus">-</span><span class="jw-mini-stat-unit">원/kWh</span></div>
     </div>
   </div>
+
+  <div class="jw-mini-legend">
+    <span><span class="jw-dot-navy"></span>SMP</span>
+    <span><span class="jw-dot-green"></span>REC (환산 반영)</span>
+  </div>
+  <div class="jw-mini-chart-box">
+    <canvas id="jwMiniChart" role="img" aria-label="최근 30일 SMP, REC 추이 미니 차트"></canvas>
+  </div>
+
   <div class="jw-mini-more"><a href="https://onerec.kmos.kr/portal/index.do" target="_blank" rel="noopener">추이 및 상세 보기 →</a></div>
-  </div>
 </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 fetch('https://raw.githubusercontent.com/joowonenergy/joowon-smp-rec-data/main/data/smp-rec.json')
-  .then(function(res){ return res.json(); })
-  .then(function(records){
-    if (!records || records.length === 0) return;
-    var today = records[0];
-    var yesterday = records[1] || today;
-    function getSmp(r){ return Number(r.smp !== undefined && r.smp !== null ? r.smp : r.smp_land) || 0; }
-    var smpToday = getSmp(today);
-    var smpYesterday = getSmp(yesterday);
-    var recToday = Number(today.rec) || 0;
-    var recYesterday = Number(yesterday.rec) || 0;
-    var smpDelta = smpToday - smpYesterday;
-    var recDelta = recToday - recYesterday;
-    var smpPlus = smpToday + (recToday * 1.2) / 1000;
-    document.getElementById('jwMiniDate').textContent = today.date + ' 기준';
-    document.getElementById('jwMiniSmp').textContent = smpToday.toFixed(2);
-    document.getElementById('jwMiniSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
-    document.getElementById('jwMiniRec').textContent = recToday.toLocaleString();
-    document.getElementById('jwMiniRecDelta').innerHTML = (recDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(recDelta).toLocaleString() + ' (전일대비)';
-    document.getElementById('jwMiniPlus').textContent = smpPlus.toFixed(2);
-  })
-  .catch(function(err){ console.error('SMP/REC 데이터 로드 실패:', err); });
+.then(function(res){ return res.json(); })
+.then(function(records){
+  if (!records || records.length === 0) return;
+  var today = records[0];
+  var yesterday = records[1] || today;
+  function getSmp(r){ return Number(r.smp !== undefined && r.smp !== null ? r.smp : r.smp_land) || 0; }
+
+  var smpToday = getSmp(today);
+  var smpYesterday = getSmp(yesterday);
+  var recToday = Number(today.rec) || 0;
+  var smpDelta = smpToday - smpYesterday;
+  var smpPlus = smpToday + (recToday * 1.2) / 1000;
+
+  document.getElementById('jwMiniSmpDate').textContent = today.date;
+  document.getElementById('jwMiniSmp').textContent = smpToday.toFixed(2);
+  document.getElementById('jwMiniSmpDelta').innerHTML = (smpDelta >= 0 ? '▲' : '▼') + Math.abs(smpDelta).toFixed(2);
+  document.getElementById('jwMiniRecDate').textContent = today.date;
+  document.getElementById('jwMiniRec').textContent = recToday.toLocaleString();
+  document.getElementById('jwMiniPlus').textContent = smpPlus.toFixed(2);
+
+  var trend = records.slice(0, 30).slice().reverse();
+  var labels = trend.map(function(r){ return r.date.slice(5); });
+  var smpSeries = trend.map(getSmp);
+  var recSeries = trend.map(function(r){ return (Number(r.rec) || 0) * 1.2 / 1000; });
+
+  new Chart(document.getElementById('jwMiniChart'), {
+    type: 'line',
+    data: { labels: labels, datasets: [
+      { label:'SMP', data: smpSeries, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.06)', borderWidth:2, pointRadius:0, fill:true, tension:0.3 },
+      { label:'REC(환산)', data: recSeries, borderColor:'#34B686', backgroundColor:'rgba(52,182,134,0.08)', borderWidth:2, pointRadius:0, fill:true, tension:0 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:6, color:'#9CA3AF', font:{size:11} }, grid:{ display:false } },
+        y:{ ticks:{ color:'#9CA3AF', font:{size:11} }, grid:{ color:'#F1F1F1' } }
+      }
+    }
+  });
+})
+.catch(function(err){ console.error('SMP/REC 데이터 로드 실패:', err); });
 </script>
 </body>
 </html>
