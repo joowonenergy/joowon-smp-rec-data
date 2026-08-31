@@ -17,11 +17,15 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 import requests
+import time
 
 SERVICE_KEY = os.environ.get("DATA_GO_KR_KEY", "")
 JSON_PATH = "data/smp-rec.json"
 KEEP_DAYS = 90
 REC_WEIGHT = 1.2  # 화면에 고정 표기되는 REC 가중치
+REQUEST_TIMEOUT = 30      # 15초 -> 30초로 상향 (data.go.kr 응답 지연 대응)
+MAX_RETRIES = 3           # 최초 시도 + 재시도 2회 = 총 3회
+RETRY_DELAY_SEC = 5       # 재시도 간 대기 시간
 
 SMP_URL = "https://apis.data.go.kr/B552115/SmpWithForecastDemand/getSmpWithForecastDemand"
 REC_URL = "https://apis.data.go.kr/B552115/RecMarketInfo2/getRecMarketInfo2"
@@ -46,24 +50,28 @@ def fetch_smp(date_str):
         "dataType": "json",
         "date": date_str,
     }
-    try:
-        res = requests.get(SMP_URL, params=params, timeout=15)
-        res.raise_for_status()
-        data = res.json()
-        result_code = data["response"]["header"]["resultCode"]
-        if result_code != "00":
-            print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
-            return None
-        items = data["response"]["body"]["items"]["item"]
-        land_values = [float(i["smp"]) for i in items if i["areaName"] == "육지"]
-        if not land_values:
-            print("[SMP] 육지 데이터가 비어있음")
-            return None
-        smp = round(sum(land_values) / len(land_values), 2)
-        return smp
-    except Exception as e:
-        print(f"[SMP] 요청 실패: {e}")
-        return None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            res = requests.get(SMP_URL, params=params, timeout=REQUEST_TIMEOUT)
+            res.raise_for_status()
+            data = res.json()
+            result_code = data["response"]["header"]["resultCode"]
+            if result_code != "00":
+                print(f"[SMP] API 오류: {data['response']['header']['resultMsg']}")
+                return None
+            items = data["response"]["body"]["items"]["item"]
+            land_values = [float(i["smp"]) for i in items if i["areaName"] == "육지"]
+            if not land_values:
+                print("[SMP] 육지 데이터가 비어있음")
+                return None
+            smp = round(sum(land_values) / len(land_values), 2)
+            return smp
+        except Exception as e:
+            print(f"[SMP] 요청 실패 ({attempt}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY_SEC)
+    print("[SMP] 재시도 모두 실패")
+    return None
 
 
 def fetch_rec(date_str):
@@ -74,25 +82,28 @@ def fetch_rec(date_str):
         "dataType": "json",
         "bzDd": date_str,
     }
-    try:
-        res = requests.get(REC_URL, params=params, timeout=15)
-        res.raise_for_status()
-        data = res.json()
-        result_code = data["response"]["header"]["resultCode"]
-        if result_code != "00":
-            print(f"[REC] API 오류(비거래일일 수 있음): {data['response']['header']['resultMsg']}")
-            return None
-        body = data["response"]["body"]
-        if int(body.get("totalCount", 0)) == 0:
-            print("[REC] 오늘은 거래일이 아님 (데이터 없음)")
-            return None
-        items = body["items"]["item"]
-        item = items[0] if isinstance(items, list) else items
-        return float(item["clsPrc"])
-    except Exception as e:
-        print(f"[REC] 요청 실패: {e}")
-        return None
-
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            res = requests.get(REC_URL, params=params, timeout=REQUEST_TIMEOUT)
+            res.raise_for_status()
+            data = res.json()
+            result_code = data["response"]["header"]["resultCode"]
+            if result_code != "00":
+                print(f"[REC] API 오류(비거래일일 수 있음): {data['response']['header']['resultMsg']}")
+                return None
+            body = data["response"]["body"]
+            if int(body.get("totalCount", 0)) == 0:
+                print("[REC] 오늘은 거래일이 아님 (데이터 없음)")
+                return None
+            items = body["items"]["item"]
+            item = items[0] if isinstance(items, list) else items
+            return float(item["clsPrc"])
+        except Exception as e:
+            print(f"[REC] 요청 실패 ({attempt}/{MAX_RETRIES}): {e}")
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY_SEC)
+    print("[REC] 재시도 모두 실패")
+    return None
 
 def load_existing_data():
     if not os.path.exists(JSON_PATH):
