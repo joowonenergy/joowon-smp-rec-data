@@ -5,65 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 추이</title>
 <style>
-  body { margin:0; font-family:'Pretendard',sans-serif; background:#FBFCFE; }
-  .jw-trend-wrap { padding:56px 40px; }
-  .jw-trend-head { text-align:center; max-width:720px; margin:0 auto 40px; }
-  .jw-accent-bar { width:48px; height:5px; background:#34B686; border-radius:3px; margin:0 auto 20px; }
-  .jw-trend-eyebrow { font-size:20px; color:#0F6E56; font-weight:800; margin-bottom:14px; }
-  .jw-trend-title { font-size:clamp(32px,5vw,44px); font-weight:800; color:#132E80; }
-  .jw-trend-card { max-width:1000px; margin:0 auto; background:#fff; border:1px solid #D1D5DB; border-radius:20px; box-shadow:0 12px 32px rgba(19,46,128,0.12); padding:32px; }
-  .jw-legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; font-size:14px; font-weight:700; color:#374151; }
-  .jw-legend span { display:flex; align-items:center; gap:6px; }
-  .jw-dot-blue { width:10px; height:10px; border-radius:2px; background:#132E80; }
-  .jw-dot-coral { width:10px; height:10px; border-radius:2px; background:#D85A30; }
-  .jw-chart-box { position:relative; height:340px; }
+body { margin:0; font-family:'Pretendard',sans-serif; background:#FBFCFE; }
+.jw-trend-wrap { padding:56px 40px; }
+.jw-trend-head { text-align:center; max-width:720px; margin:0 auto 40px; }
+.jw-accent-bar { width:48px; height:5px; background:#34B686; border-radius:3px; margin:0 auto 20px; }
+.jw-trend-eyebrow { font-size:20px; color:#0F6E56; font-weight:800; margin-bottom:14px; }
+.jw-trend-title { font-size:clamp(32px,5vw,44px); font-weight:800; color:#132E80; }
+.jw-trend-card { max-width:1000px; margin:0 auto; background:#fff; border:1px solid #D1D5DB; border-radius:20px; box-shadow:0 12px 32px rgba(19,46,128,0.12); padding:32px; }
+.jw-legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; font-size:14px; font-weight:700; color:#374151; }
+.jw-legend span { display:flex; align-items:center; gap:6px; }
+.jw-dot-blue { width:10px; height:10px; border-radius:2px; background:#132E80; }
+.jw-dot-coral { width:10px; height:10px; border-radius:2px; background:#D85A30; }
+.jw-chart-box { position:relative; height:340px; }
 </style>
 </head>
 <body>
 <div class="jw-trend-wrap">
-  <div class="jw-trend-head">
-    <div class="jw-accent-bar"></div>
-    <div class="jw-trend-eyebrow">데이터로 보는 흐름</div>
-    <div class="jw-trend-title">최근 30일 SMP·REC 추이</div>
-  </div>
-  <div class="jw-trend-card">
-    <div class="jw-legend">
-      <span><span class="jw-dot-blue"></span>SMP</span>
-      <span><span class="jw-dot-coral"></span>REC (우측 축)</span>
-    </div>
-    <div class="jw-chart-box">
-      <canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
-    </div>
-  </div>
+<div class="jw-trend-head">
+<div class="jw-accent-bar"></div>
+<div class="jw-trend-eyebrow">데이터로 보는 흐름</div>
+<div class="jw-trend-title">최근 30일 SMP·REC 추이</div>
+</div>
+<div class="jw-trend-card">
+<div class="jw-legend">
+<span><span class="jw-dot-blue"></span>SMP</span>
+<span><span class="jw-dot-coral"></span>REC (우측 축)</span>
+</div>
+<div class="jw-chart-box">
+<canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
+</div>
+</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 var labels = ["08-06", "08-07", "08-08", "08-09", "08-10", "08-11", "08-12", "08-13", "08-14", "08-15", "08-16", "08-17", "08-18", "08-19", "08-20", "08-21", "08-22", "08-23", "08-24", "08-25", "08-26", "08-27", "08-28", "08-29", "08-30", "08-31", "09-01", "09-02", "09-03", "09-04"];
 var smp = [145.55, 145.55, 145.55, 145.55, 145.55, 151.0, 146.25, 146.25, 146.7, 142.41, 137.6, 133.69, 148.15, 146.56, 144.4, 147.21, 147.21, 121.99, 149.25, 150.56, 148.36, 148.36, 151.68, 151.68, 117.95, 145.67, 160.91, 164.31, 158.63, 156.66];
-var rec = [71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71200, 71200, 71200, 71200, 71200];
+var rec = [71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71730, 71200, 70800.0, 71200, 71000.0, 71000.0];
 var flowOffset = 0;
 var flowPlugin = {
-  id: 'jwFlow',
-  beforeDatasetsDraw: function(chart) {
-    chart.ctx.save();
-    chart.ctx.lineDashOffset = -flowOffset;
-  },
-  afterDatasetsDraw: function(chart) {
-    chart.ctx.restore();
-  }
+id: 'jwFlow',
+beforeDatasetsDraw: function(chart) {
+chart.ctx.save();
+chart.ctx.lineDashOffset = -flowOffset;
+},
+afterDatasetsDraw: function(chart) {
+chart.ctx.restore();
+}
 };
 var jwChart = new Chart(document.getElementById('jwTrendChart'), {
-  type: 'line',
-  data: { labels: labels, datasets: [
-    { label:'SMP', data: smp, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
-    { label:'REC', data: rec, borderColor:'#D85A30', borderWidth:2, borderDash:[6,4], pointRadius:0, yAxisID:'y1' }
-  ]},
-  options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{
-    x:{ ticks:{ maxTicksLimit:8, color:'#6B7280' }, grid:{ display:false } },
-    y:{ position:'left', title:{display:true,text:'원/kWh',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{color:'#F1F1F1'} },
-    y1:{ position:'right', title:{display:true,text:'원/REC',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{display:false} }
-  }},
-  plugins: [flowPlugin]
+type: 'line',
+data: { labels: labels, datasets: [
+{ label:'SMP', data: smp, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
+{ label:'REC', data: rec, borderColor:'#D85A30', borderWidth:2, borderDash:[6,4], pointRadius:0, yAxisID:'y1' }
+]},
+options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{
+x:{ ticks:{ maxTicksLimit:8, color:'#6B7280' }, grid:{ display:false } },
+y:{ position:'left', title:{display:true,text:'원/kWh',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{color:'#F1F1F1'} },
+y1:{ position:'right', title:{display:true,text:'원/REC',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{display:false} }
+}},
+plugins: [flowPlugin]
 });
 function animateFlow(){ flowOffset = (flowOffset+0.4)%10; jwChart.draw(); requestAnimationFrame(animateFlow); }
 animateFlow();

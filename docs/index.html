@@ -5,78 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 현황</title>
 <style>
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
-  .jw-widget { max-width:1120px; margin:0 auto; padding:60px 24px; text-align:center; }
-  .jw-accent { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 20px; }
-  .jw-eyebrow { font-size:15px; font-weight:700; color:#0F6E56; letter-spacing:0.04em; margin-bottom:12px; }
-  .jw-title { font-size:clamp(28px,4vw,36px); font-weight:800; color:#132E80; margin-bottom:10px; }
-  .jw-date { font-size:15px; color:#9CA3AF; margin-bottom:36px; }
-  .jw-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:left; }
-  .jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:28px 24px;
-    border-top:4px solid #34B686; box-shadow:0 4px 14px rgba(19,46,128,0.06); }
-  .jw-card-navy { border-top-color:#132E80; background:#F5F7FC; }
-  .jw-icon { width:40px; height:40px; border-radius:50%; background:#EAF9F1; display:flex;
-    align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
-  .jw-card-navy .jw-icon { background:#E4EAF8; }
-  .jw-label { font-size:15px; font-weight:600; color:#4B5563; margin-bottom:10px; }
-  .jw-value { font-size:32px; font-weight:800; color:#132E80; }
-  .jw-unit { font-size:16px; font-weight:400; color:#9CA3AF; }
-  .jw-delta { font-size:14px; font-weight:700; color:#B94A1F; margin-top:12px; }
-  .jw-note { font-size:13px; color:#6B7280; margin-top:12px; line-height:1.5; }
-  @media (max-width:640px){
-    .jw-cards{ grid-template-columns:1fr; }
-  }
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
+.jw-widget { max-width:1120px; margin:0 auto; padding:60px 24px; text-align:center; }
+.jw-accent { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 20px; }
+.jw-eyebrow { font-size:15px; font-weight:700; color:#0F6E56; letter-spacing:0.04em; margin-bottom:12px; }
+.jw-title { font-size:clamp(28px,4vw,36px); font-weight:800; color:#132E80; margin-bottom:10px; }
+.jw-date { font-size:15px; color:#9CA3AF; margin-bottom:36px; }
+.jw-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:left; }
+.jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:28px 24px;
+border-top:4px solid #34B686; box-shadow:0 4px 14px rgba(19,46,128,0.06); }
+.jw-card-navy { border-top-color:#132E80; background:#F5F7FC; }
+.jw-icon { width:40px; height:40px; border-radius:50%; background:#EAF9F1; display:flex;
+align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
+.jw-card-navy .jw-icon { background:#E4EAF8; }
+.jw-label { font-size:15px; font-weight:600; color:#4B5563; margin-bottom:10px; }
+.jw-value { font-size:32px; font-weight:800; color:#132E80; }
+.jw-unit { font-size:16px; font-weight:400; color:#9CA3AF; }
+.jw-delta { font-size:14px; font-weight:700; color:#B94A1F; margin-top:12px; }
+.jw-note { font-size:13px; color:#6B7280; margin-top:12px; line-height:1.5; }
+@media (max-width:640px){
+.jw-cards{ grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
 <div class="jw-widget">
-  <div class="jw-accent"></div>
-  <div class="jw-eyebrow">SMP · REC</div>
-  <div class="jw-title">실시간 시장 현황</div>
-  <div class="jw-date" id="jwDateLabel">- 기준</div>
-  <div class="jw-cards">
-    <div class="jw-card">
-      <div class="jw-icon">⚡</div>
-      <div class="jw-label">SMP</div>
-      <div class="jw-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
-      <div id="jwSmpDelta" class="jw-delta"></div>
-    </div>
-    <div class="jw-card">
-      <div class="jw-icon">🌱</div>
-      <div class="jw-label">REC</div>
-      <div class="jw-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
-      <div class="jw-note">화·목요일에만 고시가가 갱신돼요</div>
-    </div>
-    <div class="jw-card jw-card-navy">
-      <div class="jw-icon">💰</div>
-      <div class="jw-label">1kW당 예상 수익</div>
-      <div class="jw-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit"> 원/kWh</span></div>
-      <div class="jw-note">SMP + (REC × 1.2)</div>
-    </div>
-  </div>
+<div class="jw-accent"></div>
+<div class="jw-eyebrow">SMP · REC</div>
+<div class="jw-title">실시간 시장 현황</div>
+<div class="jw-date" id="jwDateLabel">- 기준</div>
+<div class="jw-cards">
+<div class="jw-card">
+<div class="jw-icon">⚡</div>
+<div class="jw-label">SMP</div>
+<div class="jw-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+<div id="jwSmpDelta" class="jw-delta"></div>
+</div>
+<div class="jw-card">
+<div class="jw-icon">🌱</div>
+<div class="jw-label">REC</div>
+<div class="jw-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
+<div class="jw-note">화·목요일에만 고시가가 갱신돼요</div>
+</div>
+<div class="jw-card jw-card-navy">
+<div class="jw-icon">💰</div>
+<div class="jw-label">1kW당 예상 수익</div>
+<div class="jw-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+<div class="jw-note">SMP + (REC × 1.2)</div>
+</div>
+</div>
 </div>
 <script>
-var jwData = [{"date": "2026-09-04", "smp": 156.66, "rec": 71200}, {"date": "2026-09-03", "smp": 158.63, "rec": 71200}, {"date": "2026-09-02", "smp": 164.31, "rec": 71200}, {"date": "2026-09-01", "smp": 160.91, "rec": 71200}, {"date": "2026-08-31", "smp": 145.67, "rec": 71200}, {"date": "2026-08-30", "smp": 117.95, "rec": 71730}, {"date": "2026-08-29", "smp": 151.68, "rec": 71730}, {"date": "2026-08-28", "smp": 151.68, "rec": 71730}, {"date": "2026-08-27", "smp": 148.36, "rec": 71730}, {"date": "2026-08-26", "smp": 148.36, "rec": 71730}, {"date": "2026-08-25", "smp": 150.56, "rec": 71730}, {"date": "2026-08-24", "smp": 149.25, "rec": 71730}, {"date": "2026-08-23", "smp": 121.99, "rec": 71730}, {"date": "2026-08-22", "smp": 147.21, "rec": 71730}, {"date": "2026-08-21", "smp": 147.21, "rec": 71730}, {"date": "2026-08-20", "smp": 144.4, "rec": 71730}, {"date": "2026-08-19", "smp": 146.56, "rec": 71730}, {"date": "2026-08-18", "smp": 148.15, "rec": 71730}, {"date": "2026-08-17", "smp": 133.69, "rec": 71730}, {"date": "2026-08-16", "smp": 137.6, "rec": 71730}, {"date": "2026-08-15", "smp": 142.41, "rec": 71730}, {"date": "2026-08-14", "smp": 146.7, "rec": 71730}, {"date": "2026-08-13", "smp": 146.25, "rec": 71730}, {"date": "2026-08-12", "smp": 146.25, "rec": 71730}, {"date": "2026-08-11", "smp": 151.0, "rec": 71730}, {"date": "2026-08-10", "smp": 145.55, "rec": 71730}, {"date": "2026-08-09", "smp": 145.55, "rec": 71730}, {"date": "2026-08-08", "smp": 145.55, "rec": 71730}, {"date": "2026-08-07", "smp": 145.55, "rec": 71730}, {"date": "2026-08-06", "smp": 145.55, "rec": 71730}];
+var jwData = [{"date": "2026-09-04", "smp": 156.66, "rec": 71000.0}, {"date": "2026-09-03", "smp": 158.63, "rec": 71000.0}, {"date": "2026-09-02", "smp": 164.31, "rec": 71200}, {"date": "2026-09-01", "smp": 160.91, "rec": 70800.0}, {"date": "2026-08-31", "smp": 145.67, "rec": 71200}, {"date": "2026-08-30", "smp": 117.95, "rec": 71730}, {"date": "2026-08-29", "smp": 151.68, "rec": 71730}, {"date": "2026-08-28", "smp": 151.68, "rec": 71730}, {"date": "2026-08-27", "smp": 148.36, "rec": 71730}, {"date": "2026-08-26", "smp": 148.36, "rec": 71730}, {"date": "2026-08-25", "smp": 150.56, "rec": 71730}, {"date": "2026-08-24", "smp": 149.25, "rec": 71730}, {"date": "2026-08-23", "smp": 121.99, "rec": 71730}, {"date": "2026-08-22", "smp": 147.21, "rec": 71730}, {"date": "2026-08-21", "smp": 147.21, "rec": 71730}, {"date": "2026-08-20", "smp": 144.4, "rec": 71730}, {"date": "2026-08-19", "smp": 146.56, "rec": 71730}, {"date": "2026-08-18", "smp": 148.15, "rec": 71730}, {"date": "2026-08-17", "smp": 133.69, "rec": 71730}, {"date": "2026-08-16", "smp": 137.6, "rec": 71730}, {"date": "2026-08-15", "smp": 142.41, "rec": 71730}, {"date": "2026-08-14", "smp": 146.7, "rec": 71730}, {"date": "2026-08-13", "smp": 146.25, "rec": 71730}, {"date": "2026-08-12", "smp": 146.25, "rec": 71730}, {"date": "2026-08-11", "smp": 151.0, "rec": 71730}, {"date": "2026-08-10", "smp": 145.55, "rec": 71730}, {"date": "2026-08-09", "smp": 145.55, "rec": 71730}, {"date": "2026-08-08", "smp": 145.55, "rec": 71730}, {"date": "2026-08-07", "smp": 145.55, "rec": 71730}, {"date": "2026-08-06", "smp": 145.55, "rec": 71730}];
 var REC_WEIGHT = 1.2;
 function jwGetSmp(rec) {
-  if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
-  return Number(rec.smp_land) || 0;
+if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
+return Number(rec.smp_land) || 0;
 }
 function jwUpdateValues() {
-  if (!jwData || jwData.length === 0) return;
-  var today = jwData[0];
-  var yesterday = jwData[1] || today;
-  var smpToday = jwGetSmp(today);
-  var smpYesterday = jwGetSmp(yesterday);
-  var recToday = Number(today.rec) || 0;
-  var smpDelta = smpToday - smpYesterday;
-  var smpPlus = smpToday + (recToday * REC_WEIGHT) / 1000;
-  document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
-  document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
-  document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
-  document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
-  document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
+if (!jwData || jwData.length === 0) return;
+var today = jwData[0];
+var yesterday = jwData[1] || today;
+var smpToday = jwGetSmp(today);
+var smpYesterday = jwGetSmp(yesterday);
+var recToday = Number(today.rec) || 0;
+var smpDelta = smpToday - smpYesterday;
+var smpPlus = smpToday + (recToday * REC_WEIGHT) / 1000;
+document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
+document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
+document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
+document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
+document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
 }
 jwUpdateValues();
 </script>
