@@ -14,6 +14,8 @@
 "거래일 아님(totalCount=0)"으로 잘못 응답하고 며칠 뒤에야 데이터가 반영되는 지연 사례를 확인.
 이를 보완하기 위해 REC는 '오늘' 하루만 조회하지 않고, 최근 화·목 개장일을 함께 재조회해서
 data.go.kr에 뒤늦게 올라온 체결 데이터가 있으면 과거 기록도 자동으로 보정하도록 개선.
+(같은 날 후속 조치) 과거 날짜까지 매번 3회 재시도하니 API가 느릴 때 실행이 6~8분 이상 걸려서,
+과거 날짜는 1회만 시도하고 조회 범위도 10일 -> 4일로 줄여 실행 시간을 단축함.
 """
 
 import json
@@ -31,7 +33,7 @@ REC_WEIGHT = 1.2  # 화면에 고정 표기되는 REC 가중치
 REQUEST_TIMEOUT = 30  # 15초 -> 30초로 상향 (data.go.kr 응답 지연 대응)
 MAX_RETRIES = 3  # 최초 시도 + 재시도 2회 = 총 3회
 RETRY_DELAY_SEC = 5  # 재시도 간 대기 시간
-REC_LOOKBACK_DAYS = 10  # REC 데이터 지연 반영 보완: 최근 며칠의 화·목 개장일을 함께 재조회
+REC_LOOKBACK_DAYS = 4  # REC 데이터 지연 반영 보완: 최근 며칠의 화·목 개장일을 함께 재조회 (범위를 넓게 잡지 않아도 매일 실행되며 자연히 따라잡힘)
 
 SMP_URL = "https://apis.data.go.kr/B552115/SmpWithForecastDemand/getSmpWithForecastDemand"
 REC_URL = "https://apis.data.go.kr/B552115/RecMarketInfo2/getRecMarketInfo2"
@@ -80,9 +82,11 @@ def fetch_smp(date_str):
     return None
 
 
-def fetch_rec_single(date_str):
+def fetch_rec_single(date_str, max_retries=MAX_RETRIES):
     """지정한 날짜(YYYYMMDD)의 REC 체결 정보를 조회한다.
-    체결이 없거나(비거래일) API 오류인 경우 None을 반환한다."""
+    체결이 없거나(비거래일) API 오류인 경우 None을 반환한다.
+    max_retries: 과거 날짜(지연 반영 확인용)는 1회만 시도해 전체 실행 시간을 짧게 유지하고,
+    오늘 날짜만 기존처럼 여러 번 재시도한다."""
     params = {
         "serviceKey": SERVICE_KEY,
         "pageNo": 1,
@@ -90,7 +94,7 @@ def fetch_rec_single(date_str):
         "dataType": "json",
         "bzDd": date_str,
     }
-    for attempt in range(1, MAX_RETRIES + 1):
+    for attempt in range(1, max_retries + 1):
         try:
             res = requests.get(REC_URL, params=params, timeout=REQUEST_TIMEOUT)
             res.raise_for_status()
@@ -107,8 +111,8 @@ def fetch_rec_single(date_str):
             item = items[0] if isinstance(items, list) else items
             return float(item["clsPrc"])
         except Exception as e:
-            print(f"[REC] {date_str} 요청 실패 ({attempt}/{MAX_RETRIES}): {e}")
-            if attempt < MAX_RETRIES:
+            print(f"[REC] {date_str} 요청 실패 ({attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
                 time.sleep(RETRY_DELAY_SEC)
     print(f"[REC] {date_str} 재시도 모두 실패")
     return None
@@ -129,7 +133,8 @@ def collect_recent_rec(date_compact, lookback_days=REC_LOOKBACK_DAYS):
             continue
         check_str = check_date.strftime("%Y%m%d")
         check_dashed = check_date.strftime("%Y-%m-%d")
-        price = fetch_rec_single(check_str)
+        retries = MAX_RETRIES if offset == 0 else 1
+        price = fetch_rec_single(check_str, max_retries=retries)
         if price is not None:
             found[check_dashed] = price
     return found
