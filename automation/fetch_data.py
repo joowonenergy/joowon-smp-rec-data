@@ -5,10 +5,15 @@
 - docs/trend.html: 최근 30일 추이 그래프 페이지 (GitHub Pages)
 
 * 2026-07-30: API가 육지/제주 SMP를 동일한 값으로 잘못 제공하는 문제를 확인.
-  주원에너지 사업장은 전부 육지(경남 김해) 소재이므로, 육지 기준 SMP 단일값만
-  사용하도록 구조를 단순화함 (KPX 공식 사이트 대조 검증 완료, 육지 값 자체는 정확함).
+주원에너지 사업장은 전부 육지(경남 김해) 소재이므로, 육지 기준 SMP 단일값만
+사용하도록 구조를 단순화함 (KPX 공식 사이트 대조 검증 완료, 육지 값 자체는 정확함).
 * 2026-08-25: REC는 매주 화·목요일에만 고시되므로, REC 카드의 "전일대비" 증감 표시를
-  제거하고 정적 안내 문구로 대체. 카드 디자인을 아이콘+컬러 상단바 스타일로 리뉴얼.
+제거하고 정적 안내 문구로 대체. 카드 디자인을 아이콘+컬러 상단바 스타일로 리뉴얼.
+* 2026-08-31: data.go.kr 응답 지연 대응 위해 타임아웃 15초 -> 30초, 재시도 로직(최대 3회) 추가.
+* 2026-09-04: KPX 공식 사이트 대조 결과, data.go.kr REC API가 실제 체결일(예: 9/3 목)에도
+"거래일 아님(totalCount=0)"으로 잘못 응답하고 며칠 뒤에야 데이터가 반영되는 지연 사례를 확인.
+이를 보완하기 위해 REC는 '오늘' 하루만 조회하지 않고, 최근 화·목 개장일을 함께 재조회해서
+data.go.kr에 뒤늦게 올라온 체결 데이터가 있으면 과거 기록도 자동으로 보정하도록 개선.
 """
 
 import json
@@ -23,9 +28,10 @@ SERVICE_KEY = os.environ.get("DATA_GO_KR_KEY", "")
 JSON_PATH = "data/smp-rec.json"
 KEEP_DAYS = 90
 REC_WEIGHT = 1.2  # 화면에 고정 표기되는 REC 가중치
-REQUEST_TIMEOUT = 30      # 15초 -> 30초로 상향 (data.go.kr 응답 지연 대응)
-MAX_RETRIES = 3           # 최초 시도 + 재시도 2회 = 총 3회
-RETRY_DELAY_SEC = 5       # 재시도 간 대기 시간
+REQUEST_TIMEOUT = 30  # 15초 -> 30초로 상향 (data.go.kr 응답 지연 대응)
+MAX_RETRIES = 3  # 최초 시도 + 재시도 2회 = 총 3회
+RETRY_DELAY_SEC = 5  # 재시도 간 대기 시간
+REC_LOOKBACK_DAYS = 10  # REC 데이터 지연 반영 보완: 최근 며칠의 화·목 개장일을 함께 재조회
 
 SMP_URL = "https://apis.data.go.kr/B552115/SmpWithForecastDemand/getSmpWithForecastDemand"
 REC_URL = "https://apis.data.go.kr/B552115/RecMarketInfo2/getRecMarketInfo2"
@@ -74,7 +80,9 @@ def fetch_smp(date_str):
     return None
 
 
-def fetch_rec(date_str):
+def fetch_rec_single(date_str):
+    """지정한 날짜(YYYYMMDD)의 REC 체결 정보를 조회한다.
+    체결이 없거나(비거래일) API 오류인 경우 None을 반환한다."""
     params = {
         "serviceKey": SERVICE_KEY,
         "pageNo": 1,
@@ -89,21 +97,43 @@ def fetch_rec(date_str):
             data = res.json()
             result_code = data["response"]["header"]["resultCode"]
             if result_code != "00":
-                print(f"[REC] API 오류(비거래일일 수 있음): {data['response']['header']['resultMsg']}")
+                print(f"[REC] {date_str} API 오류(비거래일일 수 있음): {data['response']['header']['resultMsg']}")
                 return None
             body = data["response"]["body"]
             if int(body.get("totalCount", 0)) == 0:
-                print("[REC] 오늘은 거래일이 아님 (데이터 없음)")
+                print(f"[REC] {date_str} 체결 데이터 없음 (비거래일이거나 아직 미반영)")
                 return None
             items = body["items"]["item"]
             item = items[0] if isinstance(items, list) else items
             return float(item["clsPrc"])
         except Exception as e:
-            print(f"[REC] 요청 실패 ({attempt}/{MAX_RETRIES}): {e}")
+            print(f"[REC] {date_str} 요청 실패 ({attempt}/{MAX_RETRIES}): {e}")
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY_SEC)
-    print("[REC] 재시도 모두 실패")
+    print(f"[REC] {date_str} 재시도 모두 실패")
     return None
+
+
+def collect_recent_rec(date_compact, lookback_days=REC_LOOKBACK_DAYS):
+    """오늘부터 최근 lookback_days일 사이의 화·목(REC 개장일)을 모두 재조회해서
+    {날짜(YYYY-MM-DD): 종가} 형태로 반환한다.
+
+    data.go.kr REC API가 체결 당일에는 '거래 없음'으로 응답했다가 며칠 뒤에야
+    실제 체결 데이터를 반영하는 지연 사례가 확인되어(2026-09-04), 오늘 하루만
+    보는 대신 최근 개장일을 함께 훑어서 뒤늦게 올라온 값을 놓치지 않도록 한다."""
+    base_date = datetime.strptime(date_compact, "%Y%m%d")
+    found = {}
+    for offset in range(lookback_days + 1):
+        check_date = base_date - timedelta(days=offset)
+        if check_date.weekday() not in (1, 3):  # 화(1) · 목(3)요일만 개장
+            continue
+        check_str = check_date.strftime("%Y%m%d")
+        check_dashed = check_date.strftime("%Y-%m-%d")
+        price = fetch_rec_single(check_str)
+        if price is not None:
+            found[check_dashed] = price
+    return found
+
 
 def load_existing_data():
     if not os.path.exists(JSON_PATH):
@@ -139,78 +169,78 @@ def generate_html(records):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 현황</title>
 <style>
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
-  .jw-widget { max-width:1120px; margin:0 auto; padding:60px 24px; text-align:center; }
-  .jw-accent { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 20px; }
-  .jw-eyebrow { font-size:15px; font-weight:700; color:#0F6E56; letter-spacing:0.04em; margin-bottom:12px; }
-  .jw-title { font-size:clamp(28px,4vw,36px); font-weight:800; color:#132E80; margin-bottom:10px; }
-  .jw-date { font-size:15px; color:#9CA3AF; margin-bottom:36px; }
-  .jw-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:left; }
-  .jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:28px 24px;
-    border-top:4px solid #34B686; box-shadow:0 4px 14px rgba(19,46,128,0.06); }
-  .jw-card-navy { border-top-color:#132E80; background:#F5F7FC; }
-  .jw-icon { width:40px; height:40px; border-radius:50%; background:#EAF9F1; display:flex;
-    align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
-  .jw-card-navy .jw-icon { background:#E4EAF8; }
-  .jw-label { font-size:15px; font-weight:600; color:#4B5563; margin-bottom:10px; }
-  .jw-value { font-size:32px; font-weight:800; color:#132E80; }
-  .jw-unit { font-size:16px; font-weight:400; color:#9CA3AF; }
-  .jw-delta { font-size:14px; font-weight:700; color:#B94A1F; margin-top:12px; }
-  .jw-note { font-size:13px; color:#6B7280; margin-top:12px; line-height:1.5; }
-  @media (max-width:640px){
-    .jw-cards{ grid-template-columns:1fr; }
-  }
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Pretendard',sans-serif; background:#ffffff; }
+.jw-widget { max-width:1120px; margin:0 auto; padding:60px 24px; text-align:center; }
+.jw-accent { width:48px; height:4px; background:#34B686; border-radius:2px; margin:0 auto 20px; }
+.jw-eyebrow { font-size:15px; font-weight:700; color:#0F6E56; letter-spacing:0.04em; margin-bottom:12px; }
+.jw-title { font-size:clamp(28px,4vw,36px); font-weight:800; color:#132E80; margin-bottom:10px; }
+.jw-date { font-size:15px; color:#9CA3AF; margin-bottom:36px; }
+.jw-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; text-align:left; }
+.jw-card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:28px 24px;
+border-top:4px solid #34B686; box-shadow:0 4px 14px rgba(19,46,128,0.06); }
+.jw-card-navy { border-top-color:#132E80; background:#F5F7FC; }
+.jw-icon { width:40px; height:40px; border-radius:50%; background:#EAF9F1; display:flex;
+align-items:center; justify-content:center; font-size:18px; margin-bottom:16px; }
+.jw-card-navy .jw-icon { background:#E4EAF8; }
+.jw-label { font-size:15px; font-weight:600; color:#4B5563; margin-bottom:10px; }
+.jw-value { font-size:32px; font-weight:800; color:#132E80; }
+.jw-unit { font-size:16px; font-weight:400; color:#9CA3AF; }
+.jw-delta { font-size:14px; font-weight:700; color:#B94A1F; margin-top:12px; }
+.jw-note { font-size:13px; color:#6B7280; margin-top:12px; line-height:1.5; }
+@media (max-width:640px){
+.jw-cards{ grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
 <div class="jw-widget">
-  <div class="jw-accent"></div>
-  <div class="jw-eyebrow">SMP · REC</div>
-  <div class="jw-title">실시간 시장 현황</div>
-  <div class="jw-date" id="jwDateLabel">- 기준</div>
-  <div class="jw-cards">
-    <div class="jw-card">
-      <div class="jw-icon">⚡</div>
-      <div class="jw-label">SMP</div>
-      <div class="jw-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
-      <div id="jwSmpDelta" class="jw-delta"></div>
-    </div>
-    <div class="jw-card">
-      <div class="jw-icon">🌱</div>
-      <div class="jw-label">REC</div>
-      <div class="jw-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
-      <div class="jw-note">화·목요일에만 고시가가 갱신돼요</div>
-    </div>
-    <div class="jw-card jw-card-navy">
-      <div class="jw-icon">💰</div>
-      <div class="jw-label">1kW당 예상 수익</div>
-      <div class="jw-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit"> 원/kWh</span></div>
-      <div class="jw-note">SMP + (REC × """ + str(REC_WEIGHT) + """)</div>
-    </div>
-  </div>
+<div class="jw-accent"></div>
+<div class="jw-eyebrow">SMP · REC</div>
+<div class="jw-title">실시간 시장 현황</div>
+<div class="jw-date" id="jwDateLabel">- 기준</div>
+<div class="jw-cards">
+<div class="jw-card">
+<div class="jw-icon">⚡</div>
+<div class="jw-label">SMP</div>
+<div class="jw-value"><span id="jwSmpValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+<div id="jwSmpDelta" class="jw-delta"></div>
+</div>
+<div class="jw-card">
+<div class="jw-icon">🌱</div>
+<div class="jw-label">REC</div>
+<div class="jw-value"><span id="jwRecValue">-</span><span class="jw-unit"> 원/REC</span></div>
+<div class="jw-note">화·목요일에만 고시가가 갱신돼요</div>
+</div>
+<div class="jw-card jw-card-navy">
+<div class="jw-icon">💰</div>
+<div class="jw-label">1kW당 예상 수익</div>
+<div class="jw-value"><span id="jwSmpPlusValue">-</span><span class="jw-unit"> 원/kWh</span></div>
+<div class="jw-note">SMP + (REC × """ + str(REC_WEIGHT) + """)</div>
+</div>
+</div>
 </div>
 <script>
 var jwData = REPLACE_WITH_JSON;
 var REC_WEIGHT = """ + str(REC_WEIGHT) + """;
 function jwGetSmp(rec) {
-  if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
-  return Number(rec.smp_land) || 0;
+if (rec.smp !== undefined && rec.smp !== null) return Number(rec.smp) || 0;
+return Number(rec.smp_land) || 0;
 }
 function jwUpdateValues() {
-  if (!jwData || jwData.length === 0) return;
-  var today = jwData[0];
-  var yesterday = jwData[1] || today;
-  var smpToday = jwGetSmp(today);
-  var smpYesterday = jwGetSmp(yesterday);
-  var recToday = Number(today.rec) || 0;
-  var smpDelta = smpToday - smpYesterday;
-  var smpPlus = smpToday + (recToday * REC_WEIGHT) / 1000;
-  document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
-  document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
-  document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
-  document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
-  document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
+if (!jwData || jwData.length === 0) return;
+var today = jwData[0];
+var yesterday = jwData[1] || today;
+var smpToday = jwGetSmp(today);
+var smpYesterday = jwGetSmp(yesterday);
+var recToday = Number(today.rec) || 0;
+var smpDelta = smpToday - smpYesterday;
+var smpPlus = smpToday + (recToday * REC_WEIGHT) / 1000;
+document.getElementById('jwDateLabel').textContent = today.date + ' 기준';
+document.getElementById('jwSmpValue').textContent = smpToday.toFixed(2);
+document.getElementById('jwSmpDelta').innerHTML = (smpDelta >= 0 ? '▲ ' : '▼ ') + Math.abs(smpDelta).toFixed(2) + ' (전일대비)';
+document.getElementById('jwRecValue').textContent = recToday.toLocaleString();
+document.getElementById('jwSmpPlusValue').textContent = smpPlus.toFixed(2);
 }
 jwUpdateValues();
 </script>
@@ -238,36 +268,36 @@ def generate_trend_html(records):
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMP·REC 추이</title>
 <style>
-  body { margin:0; font-family:'Pretendard',sans-serif; background:#FBFCFE; }
-  .jw-trend-wrap { padding:56px 40px; }
-  .jw-trend-head { text-align:center; max-width:720px; margin:0 auto 40px; }
-  .jw-accent-bar { width:48px; height:5px; background:#34B686; border-radius:3px; margin:0 auto 20px; }
-  .jw-trend-eyebrow { font-size:20px; color:#0F6E56; font-weight:800; margin-bottom:14px; }
-  .jw-trend-title { font-size:clamp(32px,5vw,44px); font-weight:800; color:#132E80; }
-  .jw-trend-card { max-width:1000px; margin:0 auto; background:#fff; border:1px solid #D1D5DB; border-radius:20px; box-shadow:0 12px 32px rgba(19,46,128,0.12); padding:32px; }
-  .jw-legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; font-size:14px; font-weight:700; color:#374151; }
-  .jw-legend span { display:flex; align-items:center; gap:6px; }
-  .jw-dot-blue { width:10px; height:10px; border-radius:2px; background:#132E80; }
-  .jw-dot-coral { width:10px; height:10px; border-radius:2px; background:#D85A30; }
-  .jw-chart-box { position:relative; height:340px; }
+body { margin:0; font-family:'Pretendard',sans-serif; background:#FBFCFE; }
+.jw-trend-wrap { padding:56px 40px; }
+.jw-trend-head { text-align:center; max-width:720px; margin:0 auto 40px; }
+.jw-accent-bar { width:48px; height:5px; background:#34B686; border-radius:3px; margin:0 auto 20px; }
+.jw-trend-eyebrow { font-size:20px; color:#0F6E56; font-weight:800; margin-bottom:14px; }
+.jw-trend-title { font-size:clamp(32px,5vw,44px); font-weight:800; color:#132E80; }
+.jw-trend-card { max-width:1000px; margin:0 auto; background:#fff; border:1px solid #D1D5DB; border-radius:20px; box-shadow:0 12px 32px rgba(19,46,128,0.12); padding:32px; }
+.jw-legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:16px; font-size:14px; font-weight:700; color:#374151; }
+.jw-legend span { display:flex; align-items:center; gap:6px; }
+.jw-dot-blue { width:10px; height:10px; border-radius:2px; background:#132E80; }
+.jw-dot-coral { width:10px; height:10px; border-radius:2px; background:#D85A30; }
+.jw-chart-box { position:relative; height:340px; }
 </style>
 </head>
 <body>
 <div class="jw-trend-wrap">
-  <div class="jw-trend-head">
-    <div class="jw-accent-bar"></div>
-    <div class="jw-trend-eyebrow">데이터로 보는 흐름</div>
-    <div class="jw-trend-title">최근 30일 SMP·REC 추이</div>
-  </div>
-  <div class="jw-trend-card">
-    <div class="jw-legend">
-      <span><span class="jw-dot-blue"></span>SMP</span>
-      <span><span class="jw-dot-coral"></span>REC (우측 축)</span>
-    </div>
-    <div class="jw-chart-box">
-      <canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
-    </div>
-  </div>
+<div class="jw-trend-head">
+<div class="jw-accent-bar"></div>
+<div class="jw-trend-eyebrow">데이터로 보는 흐름</div>
+<div class="jw-trend-title">최근 30일 SMP·REC 추이</div>
+</div>
+<div class="jw-trend-card">
+<div class="jw-legend">
+<span><span class="jw-dot-blue"></span>SMP</span>
+<span><span class="jw-dot-coral"></span>REC (우측 축)</span>
+</div>
+<div class="jw-chart-box">
+<canvas id="jwTrendChart" role="img" aria-label="최근 30일 SMP, REC 추이 라인 차트">최근 30일 SMP와 REC 데이터 추이를 보여주는 차트입니다.</canvas>
+</div>
+</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -276,27 +306,27 @@ var smp = REPLACE_SMP;
 var rec = REPLACE_REC;
 var flowOffset = 0;
 var flowPlugin = {
-  id: 'jwFlow',
-  beforeDatasetsDraw: function(chart) {
-    chart.ctx.save();
-    chart.ctx.lineDashOffset = -flowOffset;
-  },
-  afterDatasetsDraw: function(chart) {
-    chart.ctx.restore();
-  }
+id: 'jwFlow',
+beforeDatasetsDraw: function(chart) {
+chart.ctx.save();
+chart.ctx.lineDashOffset = -flowOffset;
+},
+afterDatasetsDraw: function(chart) {
+chart.ctx.restore();
+}
 };
 var jwChart = new Chart(document.getElementById('jwTrendChart'), {
-  type: 'line',
-  data: { labels: labels, datasets: [
-    { label:'SMP', data: smp, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
-    { label:'REC', data: rec, borderColor:'#D85A30', borderWidth:2, borderDash:[6,4], pointRadius:0, yAxisID:'y1' }
-  ]},
-  options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{
-    x:{ ticks:{ maxTicksLimit:8, color:'#6B7280' }, grid:{ display:false } },
-    y:{ position:'left', title:{display:true,text:'원/kWh',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{color:'#F1F1F1'} },
-    y1:{ position:'right', title:{display:true,text:'원/REC',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{display:false} }
-  }},
-  plugins: [flowPlugin]
+type: 'line',
+data: { labels: labels, datasets: [
+{ label:'SMP', data: smp, borderColor:'#132E80', backgroundColor:'rgba(19,46,128,0.08)', borderWidth:2.5, pointRadius:0, yAxisID:'y' },
+{ label:'REC', data: rec, borderColor:'#D85A30', borderWidth:2, borderDash:[6,4], pointRadius:0, yAxisID:'y1' }
+]},
+options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{
+x:{ ticks:{ maxTicksLimit:8, color:'#6B7280' }, grid:{ display:false } },
+y:{ position:'left', title:{display:true,text:'원/kWh',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{color:'#F1F1F1'} },
+y1:{ position:'right', title:{display:true,text:'원/REC',color:'#6B7280'}, ticks:{color:'#6B7280'}, grid:{display:false} }
+}},
+plugins: [flowPlugin]
 });
 function animateFlow(){ flowOffset = (flowOffset+0.4)%10; jwChart.draw(); requestAnimationFrame(animateFlow); }
 animateFlow();
@@ -325,40 +355,52 @@ def main():
     print(f"=== {date_dashed} 데이터 수집 시작 ===")
 
     smp = fetch_smp(date_compact)
-    rec_price = fetch_rec(date_compact)
+
+    # REC: 오늘 하루만 보지 않고 최근 화·목 개장일을 함께 재조회 (지연 반영 보완)
+    rec_recent = collect_recent_rec(date_compact)
 
     records = load_existing_data()
+    records_by_date = {r["date"]: dict(r) for r in records}
+
+    # 뒤늦게 반영된 체결가가 있으면 과거 기록도 보정
+    for d, price in rec_recent.items():
+        prev = records_by_date.get(d, {}).get("rec")
+        if prev != price:
+            if d in records_by_date:
+                print(f"[REC] {d} 체결가 보정: {prev} → {price}")
+            records_by_date[d] = {**records_by_date.get(d, {"date": d}), "rec": price}
 
     if smp is None:
-        if records:
+        if records_by_date.get(date_dashed) is not None:
+            print("SMP 조회 실패 → 오늘자 기존 값 유지")
+            smp = get_smp(records_by_date[date_dashed])
+        elif records:
             print("SMP 조회 실패 → 직전 값 유지")
-            smp = get_smp(records[0])
+            smp = get_smp(sorted(records, key=lambda r: r["date"], reverse=True)[0])
         else:
             print("SMP 조회 실패 & 기존 데이터도 없음 → 종료")
             sys.exit(1)
 
-    if rec_price is None:
-        if records:
+    if date_dashed in rec_recent:
+        rec_price = rec_recent[date_dashed]
+    else:
+        prior_dates = sorted([d for d in records_by_date if d != date_dashed], reverse=True)
+        if prior_dates:
             print("REC 비거래일 → 직전 거래가 유지")
-            rec_price = records[0]["rec"]
+            rec_price = records_by_date[prior_dates[0]].get("rec", 0)
+        elif date_dashed in records_by_date:
+            rec_price = records_by_date[date_dashed].get("rec", 0)
         else:
             print("REC 데이터 없음 & 기존 데이터도 없음 → 0으로 처리")
             rec_price = 0
 
-    new_record = {
-        "date": date_dashed,
-        "smp": smp,
-        "rec": rec_price,
-    }
+    records_by_date[date_dashed] = {"date": date_dashed, "smp": smp, "rec": rec_price}
 
-    records = [r for r in records if r["date"] != date_dashed]
-    records.append(new_record)
-
-    records = save_data(records)
+    records = save_data(list(records_by_date.values()))
     generate_html(records)
     generate_trend_html(records)
 
-    print(f"저장 완료: {new_record}")
+    print(f"저장 완료: {records_by_date[date_dashed]}")
 
 
 if __name__ == "__main__":
