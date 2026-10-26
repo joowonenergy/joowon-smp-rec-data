@@ -53,7 +53,7 @@ def fetch_hour_text(tm, key):
             r = requests.get(
                 URL,
                 params={"tm": tm, "obs": "si_ai", "help": 0, "authKey": key},
-                timeout=90,
+                timeout=180,
             )
             if r.status_code == 200 and len(r.text) > 1000:
                 return r.text
@@ -147,12 +147,20 @@ def main():
     mapping = None
     korea_idx = None
     missing_day = 0
-    for tm in tms:
-        hour = int(tm[8:10]) or 24
+    from concurrent.futures import ThreadPoolExecutor
+
+    def work(tm):
         try:
-            g = parse_grid(fetch_hour_text(tm, key))
+            return tm, parse_grid(fetch_hour_text(tm, key)), None
         except Exception as e:
-            print("누락:", tm, str(e)[:120])
+            return tm, None, str(e)[:120]
+
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        results = list(ex.map(work, tms))
+    for tm, g, err in results:
+        hour = int(tm[8:10]) or 24
+        if g is None:
+            print("누락:", tm, err)
             if 7 <= hour <= 18:
                 missing_day += 1
             continue
