@@ -57,7 +57,7 @@ def fetch_hour_text(tm, key):
             )
             if r.status_code == 200 and len(r.text) > 1000:
                 return r.text
-            last = f"HTTP {r.status_code}, {len(r.text)} bytes"
+            last = f"HTTP {r.status_code}, {len(r.text)} bytes, 응답: {r.text[:300].replace(key, '***')}"
         except requests.RequestException as e:  # 키가 URL에 섞여 출력되지 않게 종류만 남긴다
             last = type(e).__name__
         time.sleep(3 * (attempt + 1))
