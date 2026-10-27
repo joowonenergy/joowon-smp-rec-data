@@ -107,6 +107,9 @@ select:focus,input:focus{outline:none;border-color:var(--navy)}
 .jw-tilt-cta:hover{text-decoration:underline}
 .jw-pnote{font-size:13px;font-weight:500;color:var(--sub);line-height:1.6;margin-top:8px}
 .jw-pnote[hidden]{display:none}
+.jw-seg2{grid-template-columns:1fr 1fr;margin-bottom:10px}
+.jw-seg2 button{min-height:40px;font-size:14px}
+input[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -138,8 +141,14 @@ select:focus,input:focus{outline:none;border-color:var(--navy)}
       </div>
 
       <div class="jw-field">
-        <label class="jw-label" for="kw">설치 용량 <small>kW</small></label>
-        <input id="kw" type="number" min="1" max="5000" value="100" inputmode="numeric">
+        <label class="jw-label" for="area"><span id="sizeLabel">지붕 면적</span> <small id="sizeUnit">평</small></label>
+        <div class="jw-seg jw-seg2" id="unit">
+          <button type="button" data-u="area" class="on">평으로 입력</button>
+          <button type="button" data-u="kw">kW로 입력</button>
+        </div>
+        <input id="area" type="number" min="3" max="20000" value="300" inputmode="numeric">
+        <input id="kw" type="number" min="1" max="5000" value="100" inputmode="numeric" hidden>
+        <p class="jw-pnote" id="sizeNote">약 100kW 규모로 계산해요. (1kW ≈ 3평 가정)</p>
       </div>
 
       <div class="jw-field">
@@ -257,7 +266,8 @@ const DAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
 const PR_LOW=0.78,PR_MID=0.83,PR_HIGH=0.88;
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
-let mode='self', last=null, autoRegion='';
+let mode='self', unit='area', last=null, autoRegion='';
+const PY_PER_KW=3; /* 1kW 설치에 필요한 면적(평) 가정값 */
 function fillCity(def){
   const names=Object.keys(IRR[$('region').value]).sort((a,b)=>a.localeCompare(b,'ko'));
   $('city').innerHTML=names.map(c=>`<option${c===def?' selected':''}>${c}</option>`).join('');
@@ -265,11 +275,12 @@ function fillCity(def){
 function monthly(kw,series,pr){return series.map((h,i)=>kw*h*DAYS[i]*pr)}
 function calc(){
   if(!IRR)return;
-  const kw=Math.max(1,parseFloat($('kw').value)||0), price=parseFloat($('price').value)||0;
+  const areaPy=Math.max(0,parseFloat($('area').value)||0), kw=Math.max(1,unit==='area'?areaPy/PY_PER_KW:(parseFloat($('kw').value)||0)), price=parseFloat($('price').value)||0;
   const series=IRR[$('region').value][$('city').value][$('tilt').value];
   const mid=monthly(kw,series,PR_MID), low=monthly(kw,series,PR_LOW), high=monthly(kw,series,PR_HIGH);
   const sum=a=>a.reduce((x,y)=>x+y,0), y=sum(mid);
-  last={region:$('region').value,city:$('city').value,kw:kw,tilt:$('tilt').value.slice(1),lo:sum(low),hi:sum(high),mode:mode};
+  last={region:$('region').value,city:$('city').value,kw:kw,py:unit==='area'?areaPy:null,tilt:$('tilt').value.slice(1),lo:sum(low),hi:sum(high),mode:mode};
+  $('sizeNote').textContent=unit==='area'?`지붕 ${fmt(areaPy)}평이면 약 ${fmt(kw)}kW 규모로 봐요. 지붕 모양과 패널 배치에 따라 실제 용량은 달라져요. (1kW ≈ ${PY_PER_KW}평 가정)`:`${fmt(kw)}kW는 지붕 약 ${fmt(kw*PY_PER_KW)}평 정도예요. 지붕 모양과 패널 배치에 따라 달라져요. (1kW ≈ ${PY_PER_KW}평 가정)`;
   $('yMid').textContent=fmt(y);
   $('yRange').textContent=`예상 범위 ${fmt(sum(low))} ~ ${fmt(sum(high))} kWh`;
   $('mAvg').textContent=fmt(y/12)+' kWh';
@@ -298,7 +309,11 @@ $('mode').addEventListener('click',e=>{
 });
 $('go').addEventListener('click',calc);
 $('region').addEventListener('change',()=>{fillCity();calc()});
-['city','tilt','kw','price'].forEach(id=>$(id).addEventListener('input',calc));
+$('unit').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const nu=b.dataset.u;if(nu===unit)return;
+  if(nu==='kw')$('kw').value=Math.max(1,Math.round((parseFloat($('area').value)||0)/PY_PER_KW));else $('area').value=Math.round((parseFloat($('kw').value)||0)*PY_PER_KW);
+  unit=nu;[...$('unit').children].forEach(x=>x.classList.toggle('on',x===b));
+  $('area').hidden=unit!=='area';$('kw').hidden=unit!=='kw';$('sizeUnit').textContent=unit==='area'?'평':'kW';$('sizeLabel').textContent=unit==='area'?'지붕 면적':'설치 용량';calc()});
+['city','tilt','area','kw','price'].forEach(id=>$(id).addEventListener('input',calc));
 
 
 /* ---- 경사각 그림 ---- */
@@ -421,7 +436,7 @@ async function loadDaily(){
 const SHORT={'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천','광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종','경기도':'경기','강원특별자치도':'강원','충청북도':'충북','충청남도':'충남','전북특별자치도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'};
 function summaryText(){
   if(!last)return '';
-  return `지역 ${last.region} ${last.city} · 설치 용량 ${fmt(last.kw)}kW · 경사각 ${last.tilt}° · 예상 연 발전량 ${fmt(last.lo)} ~ ${fmt(last.hi)}kWh · ${last.mode==='self'?'자가소비':last.mode==='rps'?'전량 판매(기존 RPS)':'전량 판매(2027년 이후 계약시장)'}`;
+  return `지역 ${last.region} ${last.city} · ${last.py?`지붕 면적 약 ${fmt(last.py)}평(약 ${fmt(last.kw)}kW)`:`설치 용량 ${fmt(last.kw)}kW`} · 경사각 ${last.tilt}° · 예상 연 발전량 ${fmt(last.lo)} ~ ${fmt(last.hi)}kWh · ${last.mode==='self'?'자가소비':last.mode==='rps'?'전량 판매(기존 RPS)':'전량 판매(2027년 이후 계약시장)'}`;
 }
 function refreshForm(){
   if(!$('jwForm').classList.contains('open')||!last)return;
