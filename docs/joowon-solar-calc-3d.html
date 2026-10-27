@@ -158,14 +158,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
       <div class="jw-f-row"><label class="jw-f-label" for="fPhone">연락처 *</label><input class="jw-f-input" type="tel" id="fPhone" placeholder="010-0000-0000"></div>
       <div class="jw-f-row"><label class="jw-f-label" for="fEmail">이메일</label><input class="jw-f-input" type="email" id="fEmail" placeholder="선택 입력"></div>
       <div class="jw-f-row"><label class="jw-f-label" for="fRegion">설치 희망 지역 *</label><input class="jw-f-input" type="text" id="fRegion" placeholder="예) 경남 김해시"></div>
-      <div class="jw-f-row"><label class="jw-f-label" for="fType">설치 유형 *</label>
-        <select class="jw-f-input" id="fType">
-          <option value="">선택해주세요</option>
-          <option value="주택">주택</option>
-          <option value="건물·공장·창고" selected>건물·공장·창고</option>
-          <option value="농지·기타">농지·기타</option>
-        </select>
-      </div>
       <div class="jw-f-row"><label class="jw-f-label" for="fMsg">문의 내용 *</label><textarea class="jw-f-input jw-f-ta" id="fMsg" placeholder="문의하실 내용을 자유롭게 남겨주세요"></textarea></div>
       <button class="jw-f-submit" type="button" id="fSubmit">문의 접수하기</button>
       <p class="jw-f-result" id="fResult"></p>
@@ -229,10 +221,10 @@ const SHORT={'서울특별시':'서울','부산광역시':'부산','대구광역
 function refreshForm(){if(!last)return;$('fSum').innerHTML=`<b>계산 결과가 함께 접수돼요</b><br>${summaryText()}`;const auto=`${SHORT[last.region]||last.region} ${last.city}`;if($('fRegion').value===''||$('fRegion').value===autoRegion){$('fRegion').value=auto;autoRegion=auto}}
 $('fSubmit').addEventListener('click',()=>{
   const v=id=>$(id).value.trim(), res=$('fResult'), btn=$('fSubmit');
-  if(!v('fName')||!v('fPhone')||!v('fRegion')||!v('fType')||!v('fMsg')){res.textContent='필수 항목(*)을 모두 입력해주세요.';res.className='jw-f-result error';return}
+  if(!v('fName')||!v('fPhone')||!v('fRegion')||!v('fMsg')){res.textContent='필수 항목(*)을 모두 입력해주세요.';res.className='jw-f-result error';return}
   const fd=new FormData();
   fd.append('이름',v('fName'));fd.append('연락처',v('fPhone'));fd.append('이메일',v('fEmail'));
-  fd.append('설치_희망_지역',v('fRegion'));fd.append('설치_유형',v('fType'));fd.append('문의_내용',v('fMsg'));
+  fd.append('설치_희망_지역',v('fRegion'));fd.append('설치_유형','건물·공장·창고');fd.append('문의_내용',v('fMsg'));
   fd.append('발전량_계산_결과',summaryText());
   fd.append('_subject','[주원에너지] 발전량 계산기를 통해 문의가 접수되었습니다');
   fd.append('_captcha','false');fd.append('_template','table');
