@@ -27,7 +27,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .stage{position:relative;margin:30px auto 0;max-width:760px;aspect-ratio:1019/595}
 .sh{position:absolute;inset:0;filter:blur(20px)}.sh i{position:absolute;inset:0;background:rgba(19,46,128,.24);clip-path:polygon(40.2% 0,100% 58.8%,59.8% 99.6%,0 40.8%);transform:translateY(4%)}
 .sh.s2{filter:blur(6px)}.sh.s2 i{background:rgba(19,46,128,.2);transform:translateY(1.8%)}
-#stage3d{position:absolute;inset:0}#stage3d canvas{position:absolute;inset:0;width:100%;height:100%}
+#stage3d{position:absolute;inset:0}#forest3d canvas{position:absolute;inset:0;width:100%;height:100%}#stage3d canvas{position:absolute;inset:0;width:100%;height:100%}
 .tag{position:absolute;background:#fff;border-radius:8px;padding:8px 14px;box-shadow:0 8px 24px rgba(19,46,128,.14);font-size:13px;color:#5b6a8f;font-weight:600;opacity:0;transform:translateY(12px) scale(.92);transition:opacity .45s,transform .45s cubic-bezier(.2,.9,.3,1.3);z-index:2}
 .tag.on{opacity:1;transform:none}
 .tag b{display:block;font-size:21px;color:var(--navy);font-weight:800;white-space:nowrap}.tag b i{font-style:normal}
@@ -60,6 +60,26 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .big,.chart,.bars,#wP,#wIc,#wWorst,.note{transition:opacity .6s}
 .pre .big,.pre .chart,.pre .bars,.pre #wP,.pre #wIc,.pre #wWorst,.pre .note{opacity:0}
 .pre .lockbox button{display:none}
+.inf{margin-top:14px;transition:opacity .6s}
+.pre .inf{opacity:0}
+.fld{display:flex;gap:6px;flex-wrap:wrap}
+.fld i{display:block;width:44px;height:28px;border-radius:3px;border:1.5px solid #9db0dd;background:linear-gradient(90deg,var(--navy) var(--p),#eef2fb var(--p));position:relative}
+.fld i:after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.7)}
+.hrs{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+.hrs i{height:26px;border-radius:2px;background:#e3e8f4;position:relative;overflow:hidden}
+.hrs i b{position:absolute;left:0;bottom:0;width:100%;background:#f5a623}
+.hrs-l{display:flex;justify-content:space-between;font-size:11px;color:#8a96b5;font-weight:600;margin-top:4px}
+.scl{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#c9d4f3,#f5c15a,#f5a623);margin:22px 0 6px}
+.scl b{position:absolute;top:-6px;width:4px;height:20px;border-radius:2px;background:var(--navy);transform:translateX(-50%)}
+.scl em{position:absolute;top:-24px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:800;color:var(--navy);white-space:nowrap}
+.scl-l{display:flex;justify-content:space-between;font-size:11px;color:#8a96b5;font-weight:600}
+.trs{display:flex;gap:6px;align-items:flex-end;border-bottom:2px solid #d5dbe8;padding-bottom:2px}.trs svg{width:30px;height:40px;flex:none}.trs svg:nth-child(3n+2){height:48px;width:36px}.trs svg:nth-child(4n){height:34px;width:26px}
+.sea{display:flex;gap:10px;align-items:flex-end;height:78px}
+.sea div{flex:1;text-align:center;font-size:11px;font-weight:700;color:#8a96b5;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.sea i{display:block;border-radius:4px 4px 0 0;background:#c9d4f3;margin-bottom:4px}
+.sea div.pk i{background:var(--navy)}.sea div.pk{color:var(--navy)}
+.sea span{display:block;font-size:13px;color:var(--navy);font-weight:800}
+.row2{display:flex;flex-direction:column;gap:14px}.row3{display:flex;gap:16px;align-items:center;margin-top:6px}.row3>div:first-child{flex:0 0 auto}
 .note{font-size:13px;color:#8a96b5;line-height:1.7;margin-top:18px}
 .jw-form{display:none;max-width:600px;margin:40px auto 0;background:#fff;border-radius:8px;padding:32px;border:1px solid var(--line)}
 @media(max-width:900px){.jw-top{grid-template-columns:1fr}.wg{grid-template-columns:1fr 1fr}}
@@ -116,11 +136,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 
 <div class="wg">
  <div class="card wide"><h3><i>⚡</i>월별 예상 발전량</h3><div class="big"><span id="wA">0</span><small>MWh / 년</small></div><div class="chart" id="chart"></div></div>
- <div class="card"><h3><i>🔌</i>설치 규모</h3><div class="big"><span id="wK">0</span><small>kW</small></div><div class="cap" id="wP">지붕 면적 기준</div></div>
- <div class="card"><h3><i>☀️</i>하루 발전 시간</h3><div class="big"><span id="wH">0</span><small>시간</small></div><div class="cap">1kW당 하루 평균 발전 시간</div></div>
- <div class="card"><h3><i>🌤</i>우리 지역 일사량</h3><div class="big"><span id="wI">0</span><small>kWh/㎡·일</small></div><div class="cap" id="wIc">연평균 (경사 30°)</div></div>
- <div class="card"><h3><i>🌳</i>심은 나무 효과</h3><div class="big"><span id="wT">0</span><small>그루</small></div><div class="cap">1년간 심은 나무와 같은 CO₂ 감축</div></div>
- <div class="card wide"><h3><i>📅</i>가장 많이 / 적게 나오는 달</h3><div class="big"><span id="wBest">-</span><small id="wBestS"></small></div><div class="cap" id="wWorst">-</div></div>
+ <div class="card"><h3><i>🔌</i>설치 규모</h3><div class="big"><span id="wK">0</span><small>kW</small></div><div class="cap" id="wP">지붕 면적 기준</div><div class="inf" id="iSize"></div><div class="cap" id="iSizeC" style="margin-top:6px"></div></div>
+ <div class="card"><h3><i>☀️</i>하루 발전 시간</h3><div class="big"><span id="wH">0</span><small>시간</small></div><div class="cap">1kW당 하루 평균 발전 시간</div><div class="inf" id="iHrs"></div></div>
+ <div class="card"><h3><i>🌤</i>우리 지역 일사량</h3><div class="big"><span id="wI">0</span><small>kWh/㎡·일</small></div><div class="cap" id="wIc">연평균 (경사 30°)</div><div class="inf" id="iIrr"></div></div>
+ <div class="card wide"><h3><i>🌳</i>심은 나무 효과</h3><div class="row3"><div><div class="big"><span id="wT">0</span><small>그루</small></div><div class="cap">1년간 심은 나무와 같은 CO₂ 감축</div><div class="cap" id="iTreeC" style="margin-top:10px"></div></div><div class="inf" id="forest3d" style="height:170px;position:relative;flex:1;min-width:200px"></div></div></div>
+ <div class="card"><h3><i>📅</i>가장 많이 / 적게 나오는 달</h3><div class="row2"><div><div class="big"><span id="wBest">-</span><small id="wBestS"></small></div><div class="cap" id="wWorst">-</div></div><div><div class="inf sea" id="iSea"></div></div></div></div>
 </div>
 <p class="note" id="note"></p>
   <div class="jw-form" id="jwForm">
@@ -178,6 +198,19 @@ function render(){
  $('wI').textContent=(r.ser.reduce((x,z,i)=>x+z*DAYS[i],0)/365).toFixed(2);$('wIc').textContent=`${r.city} 연평균 (경사 30°)`;
  $('wT').textContent=fmt(r.y*0.4173/7.37);
  $('chart').innerHTML=r.m.map((v,i)=>`<div class="${i===best?'pk':''}" title="${i+1}월 ${fmt(v)}kWh"><i style="height:${(v/mx*70).toFixed(0)}px"></i>${i+1}월</div>`).join('');
+ 
+ const A=r.py*3.3058; const fr=A/7140, nf=Math.min(8,Math.ceil(fr)); let fh='';for(let k=0;k<nf;k++){const pc=k<Math.floor(fr)?100:Math.round((fr-Math.floor(fr))*100)||100;fh+=`<i style="--p:${Math.min(100,pc)}%"></i>`}
+ $('iSize').className='inf fld';$('iSize').innerHTML=fh;$('iSizeC').textContent=`지붕 약 ${fmt(A)}㎡ · 축구장 ${fr.toFixed(1)}개 크기`;
+ const hv=r.y/r.kw/365;let hh='';for(let k=0;k<24;k++){const st=12-hv/2,en=12+hv/2;const ov=Math.max(0,Math.min(k+1,en)-Math.max(k,st));hh+=`<i><b style="height:${Math.round(ov*100)}%"></b></i>`}
+ $('iHrs').innerHTML=`<div class="hrs">${hh}</div><div class="hrs-l"><span>0시</span><span>12시</span><span>24시</span></div><div class="cap" style="margin-top:4px">하루 24시간 중 최대 출력 환산 약 ${hv.toFixed(1)}시간</div>`;
+ const ann=o=>o.t30.reduce((x,z,i)=>x+z*DAYS[i],0)/365;
+ if(!window.__ir){const a=[];for(const R0 of Object.values(IRR))for(const c of Object.values(R0))a.push(ann(c));a.sort((x,y)=>x-y);window.__ir=a}
+ const ir=window.__ir,iv=ann(IRR[r.region][r.city]),lo=ir[0],hi=ir[ir.length-1],pos=Math.max(0,Math.min(100,(iv-lo)/(hi-lo)*100)),top=Math.max(1,Math.round((1-ir.filter(v=>v<iv).length/ir.length)*100));
+ $('iIrr').innerHTML=`<div class="scl"><b style="left:${pos}%"></b><em style="left:${Math.min(88,Math.max(12,pos))}%">${r.city}</em></div><div class="scl-l"><span>전국 최저 ${lo.toFixed(2)}</span><span>최고 ${hi.toFixed(2)}</span></div><div class="cap" style="margin-top:4px">전국 시·군·구 중 상위 약 ${top}%</div>`;
+ const tn=r.y*0.4173/7.37, un=[100,250,500,1000,2500,5000,10000,25000].find(u=>tn/u<=24)||25000, ic=Math.max(1,Math.round(tn/un));
+ window.__fc=ic;if(window.FOREST)FOREST.set(ic);$('iTreeC').textContent=`나무 1그루 = 약 ${fmt(un)}그루`;
+ const se=[[2,3,4],[5,6,7],[8,9,10],[11,0,1]].map(g=>g.reduce((x,k)=>x+r.m[k],0)),smx=Math.max(...se),sn=['봄','여름','가을','겨울'];
+ $('iSea').innerHTML=se.map((v,i)=>`<div class="${v===smx?'pk':''}"><span>${Math.round(v/r.y*100)}%</span><i style="height:${Math.round(v/smx*46)}px"></i>${sn[i]}</div>`).join('');
  $('wBest').textContent=(best+1)+'월';$('wBestS').textContent=` 약 ${fmt(r.m[best]/1000)}MWh`;$('wWorst').textContent=`가장 적은 달: ${worst+1}월 약 ${fmt(r.m[worst]/1000)}MWh`;
  $('note').innerHTML=`※ 참고용 예상치이며 지붕 방향·경사·음영·설비 조건에 따라 달라질 수 있어요. 지붕 면적 ${fmt(r.py)}평은 약 ${fmt(r.kw)}kW로 환산했어요.<br>※ 계산 기준: 시·군·구별 월평균 일사량(경사 30° 남향 환산, 한국에너지기술연구원 신재생자원지도 천리안1호 2012~2019년 평균) × 설치 용량 × 시스템 효율 83%.<br>※ 적용 단가: ${r.p.n}.<br>※ CO₂·나무: 전력배출계수 0.4173kgCO₂eq/kWh, 나무 1그루 연 7.37kg 흡수 기준.`;
 }
@@ -314,4 +347,44 @@ function fit(){const w=host.clientWidth||1019,h=host.clientHeight||595;renderer.
 fit();addEventListener('resize',fit);
 window.F={ok:true,play(done){const t0=performance.now(),D=1700;(function f(n){const k=Math.min(1,(n-t0)/D);draw(k);if(k<1)requestAnimationFrame(f);else if(done)done()})(t0)}};
 }catch(e){window.F={ok:false}}
+</script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js';
+try{
+const host=document.getElementById('forest3d');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+host.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const cam=new THREE.OrthographicCamera(-1,1,1,-1,-200,400);
+cam.position.set(60,60,60);cam.lookAt(0,2,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0xcdd6ea,1.0));
+const sun=new THREE.DirectionalLight(0xfff4e0,2.1);
+sun.position.set(-30,50,35);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+const sc=sun.shadow.camera;sc.left=-30;sc.right=30;sc.top=30;sc.bottom=-30;sc.near=1;sc.far=200;sun.shadow.radius=4;sun.shadow.bias=-0.0004;scene.add(sun);
+const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.85,metalness:0,...o});
+function box(w,h,d,mat,x,y,z,cast,recv){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=!!cast;m.receiveShadow=recv!==false;scene.add(m);return m}
+box(30,1.2,30,M(0xe3f1e8),0,-0.6,0,false,true);
+box(30,0.5,30,M(0xcfd9ee),0,-1.45,0,false,false);
+const sh=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.ShadowMaterial({opacity:.16}));sh.rotation.x=-Math.PI/2;sh.position.y=-1.7;sh.receiveShadow=true;scene.add(sh);
+const grp=new THREE.Group();scene.add(grp);
+const trunkM=M(0x8a6a56),c1=M(0x7cc3a0),c2=M(0x92d0b0),c3=M(0x6ab592);
+function rnd(seed){let t=seed;return()=>{t=(t*1664525+1013904223)%4294967296;return t/4294967296}}
+function tree(x,z,s,k){const g=new THREE.Group();g.position.set(x,0,z);
+ const tr=new THREE.Mesh(new THREE.CylinderGeometry(.35*s,.45*s,2.2*s,10),trunkM);tr.position.y=1.1*s;tr.castShadow=true;tr.receiveShadow=true;g.add(tr);
+ const cm=[c1,c3,c1][k%3];const a=new THREE.Mesh(new THREE.SphereGeometry(2.2*s,22,16),cm);a.position.y=3.6*s;a.castShadow=true;a.receiveShadow=true;g.add(a);
+ const b=new THREE.Mesh(new THREE.SphereGeometry(1.4*s,18,12),c2);b.position.set(.9*s,4.7*s,-.5*s);b.castShadow=true;g.add(b);
+ grp.add(g)}
+function build(n){while(grp.children.length)grp.remove(grp.children[0]);
+ const cells=[];for(let i=0;i<6;i++)for(let j=0;j<6;j++)cells.push([(i-2.5)*4.6,(j-2.5)*4.6]);
+ const r=rnd(7);for(let i=cells.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]]}
+ cells.slice(0,Math.min(n,36)).forEach((c,i)=>tree(c[0]+(r()-.5)*1.6,c[1]+(r()-.5)*1.6,.8+r()*.55,i))}
+function fit(){const w=host.clientWidth||218,h=host.clientHeight||170;renderer.setSize(w,h,false);const hw=22.5,hh=hw*h/w;cam.left=-hw;cam.right=hw;cam.top=hh+1;cam.bottom=-hh+1;cam.updateProjectionMatrix();renderer.render(scene,cam)}
+window.FOREST={set(n){build(n);fit()}};
+addEventListener('resize',fit);
+build(window.__fc||10);fit();
+}catch(e){}
 </script></body></html>
