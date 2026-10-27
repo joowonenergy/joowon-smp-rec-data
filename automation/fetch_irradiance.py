@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+
 """어제(KST) 하루치 일사량을 기상청 API허브(천리안2A호 AI 일사량, si_ai)에서 받아
 시·군·구별 평균으로 정리해 data/daily-irradiance.json 에 저장한다.
 
@@ -206,6 +208,26 @@ def main():
     (DATA / "daily-irradiance.json").write_text(
         json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
+    # ---- 매일 값을 기록으로 쌓는다 (data/daily-history.json) ----
+    hist_path = DATA / "daily-history.json"
+    keys = sorted(f"{s}|{c}" for s, cs in out.items() for c in cs)
+    hist = {"unit": "kWh/m2/day (수평면 전일사량 하루 합)", "source": result["source"], "keys": keys, "days": {}}
+    if hist_path.exists():
+        try:
+            old = json.loads(hist_path.read_text(encoding="utf-8"))
+            if old.get("keys") == keys:
+                hist = old
+            else:  # 지역 구성이 바뀐 경우 기존 기록을 새 순서로 옮긴다
+                idx = {k: n for n, k in enumerate(old.get("keys", []))}
+                for dd, arr in old.get("days", {}).items():
+                    hist["days"][dd] = [arr[idx[k]] if k in idx else None for k in keys]
+        except Exception as e:
+            print("기존 기록을 읽지 못해 새로 시작합니다:", type(e).__name__)
+    hist["days"][result["date"]] = [out[k.split("|")[0]][k.split("|")[1]]["h"] for k in keys]
+    hist_path.write_text(
+        json.dumps(hist, ensure_ascii=False, separators=(",", ":"), sort_keys=True), encoding="utf-8"
+    )
+    print("기록 일수:", len(hist["days"]))
     print("저장:", result["date"], "시·군·구", sum(len(v) for v in out.values()), "곳")
 
 
