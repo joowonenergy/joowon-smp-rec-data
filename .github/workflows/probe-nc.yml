@@ -1,0 +1,26 @@
+name: Probe NetCDF Speed
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-nc
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests numpy shapely pyproj netCDF4
+      - name: 텍스트 vs NetCDF 비교
+        env:
+          KMA_API_KEY: ${{ secrets.KMA_API_KEY }}
+        run: python automation/probe_nc.py
