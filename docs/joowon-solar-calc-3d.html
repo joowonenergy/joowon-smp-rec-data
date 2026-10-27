@@ -108,7 +108,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
   <div class="lockwrap">
    <div class="blurme"><div class="cap" id="lY">연 판매 수익</div><div class="big" id="vY">6,800<small>만원</small></div></div>
    <div class="blurme row"><div class="cap">월 평균</div><div class="big" id="vM">570<small>만원</small></div><div class="bars" id="mbars"></div></div>
-   <div class="lockbox"><p id="lockMsg">계산하기를 누르면<br>예상 수익이 나와요</p><button id="unlock">무료 구조검토 받아보기</button></div>
+   <div class="lockbox"><p id="lockMsg">계산하기를 누르면<br>예상 수익이 나와요</p><button id="unlock">무료 구조검토 신청</button></div>
   </div>
   <div class="row"><div class="cap" id="l20">20년 합계</div><div class="big" id="v20" style="color:#1f9c6c">13.6<small>억원</small></div></div>
   </div>
@@ -186,7 +186,7 @@ const tags=[...document.querySelectorAll('.tag')];
 function playOnce(){tags.forEach(t=>t.classList.remove('on'));$('hint').classList.add('off');
  const done=()=>tags.forEach((t,k)=>setTimeout(()=>t.classList.add('on'),k*220));
  if(window.F&&F.ok)F.play(done);else done()}
-function go(){compute();render();document.body.classList.remove('pre');$('lockMsg').innerHTML='연·월 상세 수익은<br>무료 구조검토 후 안내드려요';playOnce();sendHeight()}
+function go(){compute();render();document.body.classList.remove('pre');$('lockMsg').innerHTML='설치 가능 여부와<br>맞춤 수익을 한 번에';playOnce();sendHeight()}
 $('go').addEventListener('click',go);
 ['area'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
 $('region').addEventListener('change',()=>fillCity());
