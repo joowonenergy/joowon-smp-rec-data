@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주원에너지 태양광 발전량 계산기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--navy:#132E80;--green:#34B686;--ink:#1b2333;--sub:#5b6577;--line:#e3e8f0;--bg:#f5f8fc;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);background:var(--white);word-break:keep-all;line-height:1.6}
+.jw-calc{max-width:1040px;margin:0 auto;padding:48px 20px}
+.jw-eyebrow{font-size:15px;font-weight:800;color:var(--green);letter-spacing:.02em}
+.jw-h1{font-size:clamp(28px,3.5vw,38px);font-weight:800;color:var(--navy);line-height:1.3;margin:8px 0 12px}
+.jw-lead{font-size:18px;color:var(--sub);max-width:640px}
+.jw-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;margin-top:32px}
+@media(max-width:820px){.jw-grid{grid-template-columns:1fr}}
+.jw-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:28px}
+.jw-h2{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:18px}
+.jw-field{margin-bottom:20px}
+.jw-label{display:block;font-size:16px;font-weight:700;margin-bottom:8px}
+.jw-label small{font-weight:500;color:var(--sub);font-size:13px;margin-left:6px}
+select,input[type=number]{width:100%;height:52px;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font:inherit;font-size:18px;background:#fff;color:var(--ink)}
+select:focus,input:focus{outline:none;border-color:var(--navy)}
+.jw-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jw-seg button{height:52px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:16px;font-weight:600;color:var(--sub);cursor:pointer}
+.jw-seg button.on{border-color:var(--navy);background:var(--navy);color:#fff}
+.jw-btn{width:100%;height:56px;border:0;border-radius:12px;background:var(--navy);color:#fff;font:inherit;font-size:18px;font-weight:700;cursor:pointer}
+.jw-btn:hover{background:#0e2362}
+.jw-result{background:#fff}
+.jw-big{font-size:clamp(34px,4.5vw,50px);font-weight:800;color:var(--navy);line-height:1.2}
+.jw-big span{font-size:20px;font-weight:700;margin-left:4px}
+.jw-range{font-size:16px;color:var(--sub);margin-top:4px}
+.jw-kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}
+.jw-kpi{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--bg)}
+.jw-kpi b{display:block;font-size:13px;font-weight:500;color:var(--sub)}
+.jw-kpi strong{font-size:20px;font-weight:800;color:var(--navy)}
+.jw-eco{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#eefaf5;border-color:#cdeee0}
+.jw-eco strong{color:#1f8f66}
+@media(max-width:560px){.jw-eco{grid-template-columns:1fr}}
+.jw-chart{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:150px;margin-top:8px}
+.jw-bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.jw-bar i{display:block;flex:none;width:100%;background:var(--green);border-radius:5px 5px 0 0;min-height:3px}
+@media(max-width:560px){.jw-kpis{grid-template-columns:1fr}}
+.jw-bar span{font-size:13px;color:var(--sub);margin-top:6px}
+.jw-note{font-size:13px;font-weight:500;color:var(--sub);margin-top:18px;line-height:1.7}
+.jw-cta{margin-top:24px;padding:22px;border-radius:14px;background:var(--navy);color:#fff;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.jw-cta p{font-size:18px;font-weight:700;line-height:1.5}
+.jw-cta p small{display:block;font-size:16px;font-weight:400;opacity:.85}
+.jw-cta button{background:var(--green);color:#fff;border:0;font:inherit;font-weight:800;font-size:18px;padding:14px 24px;border-radius:10px;white-space:nowrap;cursor:pointer}
+.jw-cta button:hover{background:#2da578}
+.jw-draft{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:#b45309;background:#fef3c7;border-radius:6px;padding:4px 10px}
+.jw-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.jw-form{display:none;max-width:600px;margin:56px auto 0}
+.jw-form.open{display:block}
+.jw-f-head{text-align:center;margin-bottom:28px}
+.jw-f-head .jw-lead{max-width:none}
+.jw-f-bar{width:32px;height:3px;background:var(--green);margin:0 auto 18px}
+.jw-f-sum{background:#eefaf5;border:1px solid #cdeee0;border-radius:12px;padding:16px 18px;margin-bottom:24px;font-size:16px;line-height:1.7;color:var(--ink)}
+.jw-f-sum b{color:var(--navy)}
+.jw-f-body{display:flex;flex-direction:column;gap:20px}
+.jw-f-row{display:flex;flex-direction:column;gap:8px}
+.jw-f-label{font-size:16px;font-weight:700;color:#111}
+.jw-f-input{width:100%;height:auto;padding:13px 14px;border:1.5px solid #cfd4e0;border-radius:8px;font:inherit;font-size:16px;font-weight:400;color:#111;background:#fff}
+.jw-f-input::placeholder{color:#999}
+.jw-f-input:focus{outline:none;border-color:var(--green)}
+.jw-f-ta{min-height:120px;resize:vertical}
+.jw-f-submit{margin-top:8px;padding:16px;background:var(--navy);color:#fff;font:inherit;font-size:16px;font-weight:700;border:0;border-radius:8px;cursor:pointer}
+.jw-f-submit:hover{background:#0f2568}
+.jw-f-submit:disabled{opacity:.6;cursor:not-allowed}
+.jw-f-result{text-align:center;font-size:13px;font-weight:600;margin:4px 0 0;min-height:20px}
+.jw-f-result.success{color:var(--green)}
+.jw-f-result.error{color:#e0453c}
+.jw-f-notice{text-align:center;font-size:13px;color:#999;margin:6px 0 0;line-height:1.5}
+
+.jw-y{margin:40px auto 0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
+.jw-y[hidden]{display:none}
+.jw-y-head{display:flex;gap:20px;justify-content:space-between;align-items:flex-start}
+.jw-y-title{font-size:26px;font-weight:700;color:var(--navy);line-height:1.4;margin:8px 0 6px}
+.jw-y-sub{font-size:18px;color:var(--sub)}
+.jw-y-ico{flex:none;width:72px;height:72px;border-radius:18px;background:#fff7e0;display:flex;align-items:center;justify-content:center}
+.jw-y-bars{margin:22px 0 6px;display:flex;flex-direction:column;gap:12px}
+.jw-y-row{display:grid;grid-template-columns:120px 1fr 112px;gap:12px;align-items:center}
+.jw-y-lab{font-size:16px;font-weight:600;color:var(--sub)}
+.jw-y-track{height:16px;background:var(--bg);border-radius:8px;overflow:hidden}
+.jw-y-track i{display:block;height:100%;width:0;background:#c3cde6;border-radius:8px;transition:width .5s ease}
+.jw-y-track i.y{background:var(--green)}
+.jw-y-row b{font-size:16px;font-weight:700;color:var(--navy);text-align:right}
+.jw-y-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+@media(max-width:700px){.jw-y-kpis{grid-template-columns:1fr}.jw-y-row{grid-template-columns:96px 1fr 96px}.jw-y-head{flex-direction:row}.jw-y-ico{width:56px;height:56px}.jw-y-title{font-size:20px}}
+
+.jw-grid>.jw-card:first-child{display:flex;flex-direction:column}
+.jw-tilt{margin-top:24px;padding-top:20px;border-top:1px dashed #cdd6e6;flex:1;display:flex;flex-direction:column;justify-content:center;min-height:240px}
+.jw-tilt svg{width:100%;height:auto;max-height:230px;display:block}
+.jw-tilt-main{font-size:16px;font-weight:700;color:var(--navy);text-align:center;margin-top:6px}
+.jw-tilt-sub{font-size:13px;font-weight:500;color:var(--sub);text-align:center;margin-top:4px;line-height:1.6}
+</style>
+</head>
+<body>
+<section class="jw-calc">
+  <div class="jw-eyebrow">SOLAR CALCULATOR</div>
+  <h1 class="jw-h1">우리 지붕, 태양광으로<br>얼마나 발전할까요?</h1>
+  <p class="jw-lead">지역과 설치 용량만 입력하면 월별 예상 발전량을 바로 확인할 수 있어요.</p>
+  <span class="jw-draft">2012~2019년 평균 일사량 기준 · 참고용 예상치</span>
+
+  <div class="jw-grid">
+    <div class="jw-card">
+      <h2 class="jw-h2">설치 조건 입력</h2>
+
+      <div class="jw-field">
+        <label class="jw-label" for="region">설치 지역</label>
+        <div class="jw-two">
+          <select id="region" aria-label="시·도"></select>
+          <select id="city" aria-label="시·군·구"></select>
+        </div>
+      </div>
+
+      <div class="jw-field">
+        <label class="jw-label" for="tilt">설치 경사각 <small>남향 기준</small></label>
+        <select id="tilt">
+          <option value="t10">10° (완만한 경사)</option>
+          <option value="t20" selected>20°</option>
+          <option value="t30">30° (연간 발전량에 가장 유리)</option>
+        </select>
+      </div>
+
+      <div class="jw-field">
+        <label class="jw-label" for="kw">설치 용량 <small>kW</small></label>
+        <input id="kw" type="number" min="1" max="5000" value="100" inputmode="numeric">
+      </div>
+
+      <div class="jw-field">
+        <span class="jw-label">전기 사용 방식</span>
+        <div class="jw-seg" id="mode">
+          <button type="button" data-m="self" class="on">자가소비</button>
+          <button type="button" data-m="sell">전량 판매</button>
+        </div>
+      </div>
+
+      <div class="jw-field">
+        <label class="jw-label" for="price"><span id="priceLabel">전기요금 절감 단가</span> <small>원/kWh · 직접 수정</small></label>
+        <input id="price" type="number" min="1" value="150" inputmode="numeric">
+      </div>
+
+      <button class="jw-btn" id="go" type="button">발전량 계산하기</button>
+
+      <div class="jw-tilt" id="jwTilt">
+        <svg id="tiltSvg" viewBox="0 0 320 210" role="img" aria-label="설치 경사각 그림"></svg>
+        <p class="jw-tilt-main" id="tiltMain"></p>
+        <p class="jw-tilt-sub" id="tiltSub"></p>
+      </div>
+    </div>
+
+    <div class="jw-card jw-result" id="res">
+      <h2 class="jw-h2">예상 결과</h2>
+      <div class="jw-big"><span id="yMid" style="margin:0;font-size:inherit">-</span><span>kWh / 년</span></div>
+      <div class="jw-range" id="yRange">-</div>
+
+      <div class="jw-kpis">
+        <div class="jw-kpi"><b>월 평균 발전량</b><strong id="mAvg">-</strong></div>
+        <div class="jw-kpi"><b id="moneyLabel">연 전기요금 절감 (참고)</b><strong id="money">-</strong></div>
+        <div class="jw-kpi jw-eco">
+          <div><b>연간 CO₂ 감축량</b><strong id="co2">-</strong></div>
+          <div><b>나무가 1년간 흡수하는 양과 같아요</b><strong id="trees">-</strong></div>
+        </div>
+      </div>
+
+      <div class="jw-h2" style="font-size:16px;margin-bottom:0">월별 예상 발전량</div>
+      <div class="jw-chart" id="chart"></div>
+
+      <div class="jw-cta">
+        <p>우리 지붕 정확한 수치가 궁금하다면?<small>현장 조건을 반영한 무료 진단을 받아보세요.</small></p>
+        <button type="button" id="cta">내 공장 지붕 무료 진단</button>
+      </div>
+
+      <p class="jw-note">
+        ※ 참고용 예상치이며, 지붕 방향·경사·음영·설비 조건에 따라 실제 발전량은 달라질 수 있어요.<br>
+        ※ 계산 기준: 시·군·구별 월평균 일사량(남향 경사면 환산) × 설치 용량 × 시스템 효율 78~88%.<br>※ 일사량 출처: 한국에너지기술연구원 신재생자원지도(천리안1호 위성, 2012~2019년 월평균).<br>
+        ※ CO₂ 감축량: 발전량 × 전력배출계수 0.4173kgCO₂eq/kWh(2023년도, 기후에너지환경부 공표). 나무 그루 수는 국립공원 수목 84종 평균 흡수량 연 7.37kg/그루(국립공원공단 조사) 기준이에요.<br>※ 단가는 가정값이며 실제 계약·요금 조건에 따라 달라져요.
+      </p>
+    </div>
+  </div>
+  <section class="jw-y" id="jwY" hidden>
+    <div class="jw-y-head">
+      <div>
+        <div class="jw-eyebrow">YESTERDAY · 어제의 햇빛</div>
+        <h2 class="jw-y-title" id="yTitle"></h2>
+        <p class="jw-y-sub" id="ySub"></p>
+      </div>
+      <div class="jw-y-ico" id="yIco"></div>
+    </div>
+    <div class="jw-y-bars">
+      <div class="jw-y-row"><span class="jw-y-lab">이달 평년 하루</span><div class="jw-y-track"><i id="yBarClim"></i></div><b id="yValClim"></b></div>
+      <div class="jw-y-row"><span class="jw-y-lab" id="yLabDay">어제</span><div class="jw-y-track"><i class="y" id="yBarDay"></i></div><b id="yValDay"></b></div>
+    </div>
+    <div class="jw-y-kpis">
+      <div class="jw-kpi"><b>평년 대비</b><strong id="yRatio"></strong></div>
+      <div class="jw-kpi"><b id="yGenLab"></b><strong id="yGen"></strong></div>
+      <div class="jw-kpi"><b>같은 조건 이달 평년 하루</b><strong id="yGenClim"></strong></div>
+    </div>
+    <p class="jw-note" id="yNote"></p>
+  </section>
+
+  <div class="jw-form" id="jwForm">
+    <div class="jw-f-head">
+      <div class="jw-f-bar"></div>
+      <div class="jw-eyebrow">CONTACT US · 무료 진단 신청</div>
+      <h2 class="jw-h1" style="margin-bottom:10px">계산 결과 그대로,<br>전문 상담을 받아보세요</h2>
+      <p class="jw-lead" style="margin:0 auto">전문 상담원이 확인 후 빠르게 연락드리겠습니다</p>
+    </div>
+
+    <div class="jw-f-sum" id="fSum"></div>
+
+    <div class="jw-f-body">
+      <div class="jw-f-row"><label class="jw-f-label" for="fName">이름 *</label><input class="jw-f-input" type="text" id="fName" placeholder="이름을 입력해주세요"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fPhone">연락처 *</label><input class="jw-f-input" type="tel" id="fPhone" placeholder="010-0000-0000"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fEmail">이메일</label><input class="jw-f-input" type="email" id="fEmail" placeholder="선택 입력"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fRegion">설치 희망 지역 *</label><input class="jw-f-input" type="text" id="fRegion" placeholder="예) 경남 김해시"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fType">설치 유형 *</label>
+        <select class="jw-f-input" id="fType">
+          <option value="">선택해주세요</option>
+          <option value="주택">주택</option>
+          <option value="건물·공장·창고" selected>건물·공장·창고</option>
+          <option value="농지·기타">농지·기타</option>
+        </select>
+      </div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fMsg">문의 내용 *</label><textarea class="jw-f-input jw-f-ta" id="fMsg" placeholder="문의하실 내용을 자유롭게 남겨주세요"></textarea></div>
+      <button class="jw-f-submit" type="button" id="fSubmit">문의 접수하기</button>
+      <p class="jw-f-result" id="fResult"></p>
+      <p class="jw-f-notice">개인정보는 상담 목적으로만 사용되며, 상담 완료 후 안전하게 폐기됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+/* 일사량: 한국에너지기술연구원 신재생자원지도(천리안1호, 2012~2019 월평균). H=수평면, t10/t20/t30=남향 경사면 환산값(kWh/m²/일) */
+let IRR=null; /* docs/irr_sigungu.json 에서 불러온다 */
+const DAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
+const PR_LOW=0.78,PR_MID=0.83,PR_HIGH=0.88;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+let mode='self', last=null, autoRegion='';
+function fillCity(def){
+  const names=Object.keys(IRR[$('region').value]).sort((a,b)=>a.localeCompare(b,'ko'));
+  $('city').innerHTML=names.map(c=>`<option${c===def?' selected':''}>${c}</option>`).join('');
+}
+function monthly(kw,series,pr){return series.map((h,i)=>kw*h*DAYS[i]*pr)}
+function calc(){
+  if(!IRR)return;
+  const kw=Math.max(1,parseFloat($('kw').value)||0), price=parseFloat($('price').value)||0;
+  const series=IRR[$('region').value][$('city').value][$('tilt').value];
+  const mid=monthly(kw,series,PR_MID), low=monthly(kw,series,PR_LOW), high=monthly(kw,series,PR_HIGH);
+  const sum=a=>a.reduce((x,y)=>x+y,0), y=sum(mid);
+  last={region:$('region').value,city:$('city').value,kw:kw,tilt:$('tilt').value.slice(1),lo:sum(low),hi:sum(high),mode:mode};
+  $('yMid').textContent=fmt(y);
+  $('yRange').textContent=`예상 범위 ${fmt(sum(low))} ~ ${fmt(sum(high))} kWh`;
+  $('mAvg').textContent=fmt(y/12)+' kWh';
+  const EF=0.4173, TREE=7.37; /* 전력배출계수 kgCO2eq/kWh(2023년도), 나무 1그루 연간 CO2 흡수량 kg */
+  const tLow=sum(low)*EF/1000, tHigh=sum(high)*EF/1000;
+  $('co2').textContent=`약 ${tLow.toFixed(1)} ~ ${tHigh.toFixed(1)}톤`;
+  $('trees').textContent=`약 ${fmt(sum(low)*EF/TREE)} ~ ${fmt(sum(high)*EF/TREE)}그루`;
+  $('money').textContent=`약 ${fmt(sum(low)*price/10000)} ~ ${fmt(sum(high)*price/10000)}만원`;
+  refreshForm();
+  renderY();
+  tiltViz();
+  const mx=Math.max(...mid);
+  $('chart').innerHTML=mid.map((v,i)=>`<div class="jw-bar" title="${i+1}월 ${fmt(v)}kWh"><i style="height:calc((100% - 24px) * ${(v/mx).toFixed(4)})"></i><span>${i+1}월</span></div>`).join('');
+}
+$('mode').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  mode=b.dataset.m;
+  [...$('mode').children].forEach(x=>x.classList.toggle('on',x===b));
+  if(mode==='self'){$('priceLabel').textContent='전기요금 절감 단가';$('moneyLabel').textContent='연 전기요금 절감 (참고)';$('price').value=150}
+  else{$('priceLabel').textContent='판매 단가 (SMP+REC 합산)';$('moneyLabel').textContent='연 판매 수익 (참고)';$('price').value=170}
+  calc();
+});
+$('go').addEventListener('click',calc);
+$('region').addEventListener('change',()=>{fillCity();calc()});
+['city','tilt','kw','price'].forEach(id=>$(id).addEventListener('input',calc));
+
+
+/* ---- 경사각 그림 ---- */
+function tiltViz(){
+  if(!IRR||!last)return;
+  const ser=k=>IRR[last.region][last.city][k];
+  const yr=a=>a.reduce((x,h,i)=>x+h*DAYS[i],0);
+  const y10=yr(ser('t10')),y20=yr(ser('t20')),y30=yr(ser('t30'));
+  const cur=+last.tilt, yc=cur===10?y10:cur===20?y20:y30, best=Math.max(y10,y20,y30);
+  const pct=Math.round(yc/best*100);
+  const sum=(a,idx)=>idx.reduce((x,m)=>x+a[m]*DAYS[m],0), win=[11,0,1], sumr=[5,6,7];
+  const cs=ser('t'+cur), bs=ser('t10');
+  const dw=Math.round((sum(cs,win)/sum(bs,win)-1)*100), dr=Math.round((sum(cs,sumr)/sum(bs,sumr)-1)*100);
+  const sg=n=>(n>0?'+':'')+n+'%';
+  // 그림: 왼쪽이 남쪽(해), 패널은 남쪽을 향해 기울어요
+  const px=70, py=172, L=150, a=cur*Math.PI/180;
+  const ex=px+L*Math.cos(a), ey=py-L*Math.sin(a);
+  const arcR=58, ax=px+arcR*Math.cos(a), ay=py-arcR*Math.sin(a);
+  const sunX=42, sunY=44;
+  const rays=[0,45,90,135,180,225,270,315].map(d=>`<line x1="${sunX}" y1="${sunY-20}" x2="${sunX}" y2="${sunY-28}" stroke="#F5B031" stroke-width="3" stroke-linecap="round" transform="rotate(${d} ${sunX} ${sunY})"/>`).join('');
+  const mid=0.62, mx=px+L*mid*Math.cos(a), my=py-L*mid*Math.sin(a);
+  const svg=`
+  <line x1="12" y1="${py}" x2="308" y2="${py}" stroke="#9fb0d6" stroke-width="3" stroke-linecap="round"/>
+  <line x1="${sunX+28}" y1="${sunY+14}" x2="${px+L*0.45*Math.cos(a)}" y2="${py-L*0.45*Math.sin(a)-6}" stroke="#F5B031" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>
+  <circle cx="${sunX}" cy="${sunY}" r="14" fill="#F5B031"/>${rays}
+  <line x1="${px}" y1="${py}" x2="${px+L+14}" y2="${py}" stroke="#c3cde6" stroke-width="2" stroke-dasharray="5 5"/>
+  <line x1="${mx}" y1="${my}" x2="${mx}" y2="${py}" stroke="#7d8db3" stroke-width="5" stroke-linecap="round"/>
+  <line x1="${ex}" y1="${ey}" x2="${ex}" y2="${py}" stroke="#7d8db3" stroke-width="5" stroke-linecap="round"/>
+  <line x1="${px}" y1="${py}" x2="${ex}" y2="${ey}" stroke="#132E80" stroke-width="16" stroke-linecap="round"/>
+  <line x1="${px}" y1="${py}" x2="${ex}" y2="${ey}" stroke="#34B686" stroke-width="10" stroke-linecap="round" stroke-dasharray="14 3"/>
+  <path d="M ${px+arcR} ${py} A ${arcR} ${arcR} 0 0 0 ${ax} ${ay}" fill="none" stroke="#132E80" stroke-width="2.5"/>
+  <text x="${px-10}" y="${py-12}" font-size="20" font-weight="800" fill="#132E80" text-anchor="end" font-family="Pretendard,sans-serif">${cur}°</text>
+  <text x="14" y="${py+26}" font-size="13" font-weight="600" fill="#5b6577" font-family="Pretendard,sans-serif">남쪽 ←</text>
+  <text x="308" y="${py+26}" font-size="13" font-weight="600" fill="#5b6577" text-anchor="end" font-family="Pretendard,sans-serif">→ 북쪽</text>`;
+  $('tiltSvg').innerHTML=svg;
+  $('tiltMain').textContent = cur===30||pct===100 ? `경사각 ${cur}° · 세 가지 중 연간 발전량이 가장 많아요` : `경사각 ${cur}° · 30°일 때의 ${pct}% 수준이에요`;
+  $('tiltSub').textContent = cur===10 ? '10°를 기준으로 비교하면, 경사가 클수록 겨울 발전이 늘고 여름 발전은 줄어요.' : `10° 대비 겨울(12~2월) ${sg(dw)}, 여름(6~8월) ${sg(dr)}`;
+}
+
+/* ---- 어제의 햇빛 카드 ---- */
+let DAILY=null;
+const RAW='https://raw.githubusercontent.com/joowonenergy/joowon-smp-rec-data/main/data/daily-irradiance.json';
+function yIcon(r){
+  const sun='<circle cx="28" cy="28" r="9" fill="#F5B031"/>'+[0,45,90,135,180,225,270,315].map(a=>`<line x1="28" y1="9" x2="28" y2="14" stroke="#F5B031" stroke-width="3" stroke-linecap="round" transform="rotate(${a} 28 28)"/>`).join('');
+  const cloud='<path d="M17 40h22a8 8 0 0 0 .6-16 11 11 0 0 0-21-2A9 9 0 0 0 17 40z" fill="#9fb0d6"/>';
+  let inner;
+  if(r>=0.9) inner=sun;
+  else if(r>=0.5) inner='<g transform="translate(8 -6) scale(.7)">'+sun+'</g><g transform="translate(-2 4)">'+cloud+'</g>';
+  else inner='<g transform="translate(0 -4)">'+cloud+'</g><g stroke="#4c6bc0" stroke-width="3" stroke-linecap="round"><line x1="21" y1="46" x2="19" y2="52"/><line x1="29" y1="46" x2="27" y2="52"/><line x1="37" y1="46" x2="35" y2="52"/></g>';
+  return `<svg width="48" height="48" viewBox="0 0 56 56" aria-hidden="true">${inner}</svg>`;
+}
+function renderY(){
+  const box=$('jwY');
+  if(!IRR||!DAILY||!last){box.hidden=true;return}
+  const rec=(DAILY.data[last.region]||{})[last.city];
+  if(!rec||!rec.clim||!rec.ratio){box.hidden=true;return}
+  const d=new Date(DAILY.date+'T00:00:00'), wd='일월화수목금토'[d.getDay()];
+  const dateLabel=`${d.getMonth()+1}월 ${d.getDate()}일(${wd})`;
+  const month=d.getMonth();
+  const ratio=rec.ratio, pct=Math.round(ratio*100);
+  const series=IRR[last.region][last.city]['t'+last.tilt];
+  const base=last.kw*series[month]*PR_MID;           // 평년 같은 날 예상 발전량
+  const gen=base*ratio;                              // 어제 예상 발전량
+  let title,sub;
+  if(ratio>=1.1){title=`어제 ${last.city}는 햇빛이 평소보다 풍부했어요`;sub=`평년보다 ${pct-100}% 많은 햇빛이 들어왔어요.`}
+  else if(ratio>=0.9){title=`어제 ${last.city}의 햇빛은 평소와 비슷했어요`;sub=`평년의 ${pct}% 수준이에요.`}
+  else if(ratio>=0.5){title=`어제 ${last.city}는 구름이 많아 햇빛이 평소보다 적었어요`;sub=`평년의 ${pct}% 수준이에요.`}
+  else{title=`어제 ${last.city}는 흐리거나 비가 와서 햇빛이 아주 적었어요`;sub=`평년의 ${pct}% 수준이에요.`}
+  $('yTitle').textContent=title; $('ySub').textContent=sub; $('yIco').innerHTML=yIcon(ratio);
+  const mx=Math.max(rec.clim,rec.h)||1;
+  $('yBarClim').style.width=(rec.clim/mx*100)+'%'; $('yBarDay').style.width=(rec.h/mx*100)+'%';
+  $('yValClim').textContent=rec.clim.toFixed(2)+' kWh/㎡'; $('yValDay').textContent=rec.h.toFixed(2)+' kWh/㎡';
+  $('yLabDay').textContent=dateLabel;
+  $('yRatio').textContent=pct+'%';
+  $('yGenLab').textContent=`설치 ${fmt(last.kw)}kW · ${dateLabel} 예상 발전량`;
+  $('yGen').textContent='약 '+fmt(gen)+' kWh';
+  $('yGenClim').textContent='약 '+fmt(base)+' kWh';
+  $('yNote').innerHTML=`※ ${dateLabel} 하루 합계 기준이에요. 기상청 천리안2A호 위성 자료(인공지능 추정)를 시·군·구 평균으로 정리한 값이라 실제와 차이가 있을 수 있어요.<br>※ 예상 발전량은 위 평년 대비 비율을 계산기 값(경사각·효율 적용)에 곱한 추정치예요. 갱신: ${DAILY.updated}`;
+  box.hidden=false; sendHeight();
+}
+async function loadDaily(){
+  try{
+    const r=await fetch(RAW,{cache:'no-store'});
+    if(r.ok){const j=await r.json(); if(j&&j.data){DAILY=j; renderY();}}
+  }catch(e){}
+}
+
+/* ---- 문의폼 연결 ---- */
+const SHORT={'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천','광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종','경기도':'경기','강원특별자치도':'강원','충청북도':'충북','충청남도':'충남','전북특별자치도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'};
+function summaryText(){
+  if(!last)return '';
+  return `지역 ${last.region} ${last.city} · 설치 용량 ${fmt(last.kw)}kW · 경사각 ${last.tilt}° · 예상 연 발전량 ${fmt(last.lo)} ~ ${fmt(last.hi)}kWh · ${last.mode==='self'?'자가소비':'전량 판매'}`;
+}
+function refreshForm(){
+  if(!$('jwForm').classList.contains('open')||!last)return;
+  $('fSum').innerHTML=`<b>계산 결과가 함께 접수돼요</b><br>${summaryText()}`;
+  const auto=`${SHORT[last.region]||last.region} ${last.city}`;
+  if($('fRegion').value===''||$('fRegion').value===autoRegion){$('fRegion').value=auto;autoRegion=auto}
+  sendHeight();
+}
+$('cta').addEventListener('click',()=>{
+  const f=$('jwForm'); f.classList.add('open');
+  if(!$('fMsg').value)$('fMsg').value='위 계산 결과로 무료 진단을 받고 싶어요.';
+  refreshForm();
+  setTimeout(()=>{f.scrollIntoView({behavior:'smooth',block:'start'});sendHeight()},50);
+});
+$('fSubmit').addEventListener('click',()=>{
+  const v=id=>$(id).value.trim(), res=$('fResult'), btn=$('fSubmit');
+  if(!v('fName')||!v('fPhone')||!v('fRegion')||!v('fType')||!v('fMsg')){res.textContent='필수 항목(*)을 모두 입력해주세요.';res.className='jw-f-result error';return}
+  const fd=new FormData();
+  fd.append('이름',v('fName'));fd.append('연락처',v('fPhone'));fd.append('이메일',v('fEmail'));
+  fd.append('설치_희망_지역',v('fRegion'));fd.append('설치_유형',v('fType'));fd.append('문의_내용',v('fMsg'));
+  fd.append('발전량_계산_결과',summaryText());
+  fd.append('_subject','[주원에너지] 발전량 계산기를 통해 문의가 접수되었습니다');
+  fd.append('_captcha','false');fd.append('_template','table');
+  btn.disabled=true;btn.textContent='전송 중...';res.textContent='';res.className='jw-f-result';
+  fetch('https://formsubmit.co/ajax/ds8059@naver.com',{method:'POST',headers:{'Accept':'application/json'},body:fd})
+   .then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+   .then(()=>{res.textContent='문의가 정상적으로 접수되었습니다. 빠르게 연락드리겠습니다.';res.className='jw-f-result success';['fName','fPhone','fEmail','fMsg'].forEach(id=>$(id).value='')})
+   .catch(()=>{res.textContent='전송에 실패했습니다. 잠시 후 다시 시도해주세요.';res.className='jw-f-result error'})
+   .finally(()=>{btn.disabled=false;btn.textContent='문의 접수하기';sendHeight()});
+});
+
+/* 아임웹 iframe 높이 자동 조절용 */
+function sendHeight(){try{parent.postMessage({type:'jw-calc-height',height:document.documentElement.scrollHeight},'*')}catch(e){}}
+if(window.ResizeObserver)new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+
+async function boot(){
+  try{
+    const r=await fetch('irr_sigungu.json');
+    if(!r.ok)throw new Error(r.status);
+    IRR=await r.json();
+  }catch(e){
+    document.querySelector('.jw-calc').insertAdjacentHTML('afterbegin','<p style="color:#e0453c;font-weight:600;margin-bottom:16px">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>');
+    return;
+  }
+  $('region').innerHTML=Object.keys(IRR).map(r=>`<option${r==='경상남도'?' selected':''}>${r}</option>`).join('');
+  fillCity('김해시');
+  calc();
+  loadDaily();
+}
+boot();
+</script>
+</body>
+</html>
