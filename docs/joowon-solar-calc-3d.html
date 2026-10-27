@@ -2,7 +2,7 @@
 <title>공장 지붕 태양광 발전량 계산기 | 주원에너지</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
-:root{--navy:#132E80;--green:#34B686;--ink:#1b2333;--sub:#5b6577;--line:#e3e8f0;--bg:#f4f7fc;--white:#fff}
+:root{--navy:#132E80;--green:#34B686;--ink:#1b2333;--sub:#5b6577;--line:#e3e8f0;--bg:#f3f4f6;--white:#fff}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);background:var(--bg);word-break:keep-all;line-height:1.5}
 .jw{max-width:1120px;margin:0 auto;padding:36px 20px 48px}
@@ -10,15 +10,15 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .jw-h1{font-size:clamp(28px,3.5vw,38px);font-weight:800;color:var(--navy);line-height:1.3;margin:6px 0 4px}
 .jw-lead{font-size:18px;color:var(--sub)}
 .jw-ctl{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 18px}
-.jw-ctl label{background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 14px;font-size:13px;font-weight:600;color:#7a88aa;flex:1 1 130px;min-width:120px}
+.jw-ctl label{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;color:#7a88aa;flex:1 1 130px;min-width:120px}
 .jw-ctl select,.jw-ctl input{display:block;width:100%;border:0;font:700 16px Pretendard,sans-serif;color:var(--navy);background:none;outline:0;padding:2px 0}
 .jw-ctl input{-moz-appearance:textfield}.jw-ctl input::-webkit-outer-spin-button,.jw-ctl input::-webkit-inner-spin-button{-webkit-appearance:none}
-.jw-ctl button{background:var(--navy);color:#fff;border:0;border-radius:14px;padding:0 30px;font:800 17px Pretendard,sans-serif;cursor:pointer;min-height:56px}
+.jw-ctl button{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:0 30px;font:800 17px Pretendard,sans-serif;cursor:pointer;min-height:56px}
 .jw-ctl button:hover{background:#0d2160}
 .jw-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 4px 18px rgba(19,46,128,.05);position:relative}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:20px;box-shadow:0 4px 18px rgba(19,46,128,.05);position:relative}
 .card h3{font-size:15px;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:8px}
-.card h3 i{width:26px;height:26px;border-radius:8px;background:#eef2fb;display:grid;place-items:center;font-style:normal;font-size:14px}
+.card h3 i{width:26px;height:26px;border-radius:5px;background:#eef2fb;display:grid;place-items:center;font-style:normal;font-size:14px}
 .big{font-size:34px;font-weight:800;color:var(--navy);margin:10px 0 2px;white-space:nowrap}.big small{font-size:16px;font-weight:700;color:#8a96b5;margin-left:3px}
 .cap{font-size:13px;color:#8a96b5;font-weight:600}
 /* stage */
@@ -28,7 +28,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .sh{position:absolute;inset:0;filter:blur(20px)}.sh i{position:absolute;inset:0;background:rgba(19,46,128,.24);clip-path:polygon(40.2% 0,100% 58.8%,59.8% 99.6%,0 40.8%);transform:translateY(4%)}
 .sh.s2{filter:blur(6px)}.sh.s2 i{background:rgba(19,46,128,.2);transform:translateY(1.8%)}
 #stage3d{position:absolute;inset:0}#stage3d canvas{position:absolute;inset:0;width:100%;height:100%}
-.tag{position:absolute;background:#fff;border-radius:14px;padding:8px 14px;box-shadow:0 8px 24px rgba(19,46,128,.14);font-size:13px;color:#5b6a8f;font-weight:600;opacity:0;transform:translateY(12px) scale(.92);transition:opacity .45s,transform .45s cubic-bezier(.2,.9,.3,1.3);z-index:2}
+.tag{position:absolute;background:#fff;border-radius:8px;padding:8px 14px;box-shadow:0 8px 24px rgba(19,46,128,.14);font-size:13px;color:#5b6a8f;font-weight:600;opacity:0;transform:translateY(12px) scale(.92);transition:opacity .45s,transform .45s cubic-bezier(.2,.9,.3,1.3);z-index:2}
 .tag.on{opacity:1;transform:none}
 .tag b{display:block;font-size:21px;color:var(--navy);font-weight:800;white-space:nowrap}.tag b i{font-style:normal}
 .tag:after{content:'';position:absolute;width:2px;height:26px;background:#9db0dd;left:50%;top:100%}
@@ -42,9 +42,9 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .lockwrap{position:relative;flex:1;display:flex;flex-direction:column;gap:14px}.money>.row{border-top:1px solid var(--line);padding-top:12px}
 .blurme{filter:blur(9px);user-select:none;pointer-events:none;transition:filter .6s}
 .unlocked .blurme,.unlocked .tag.lock b{filter:none;user-select:auto}
-.lockbox{position:absolute;inset:-6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;z-index:4;background:rgba(255,255,255,.35);border-radius:16px}
+.lockbox{position:absolute;inset:-6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;z-index:4;background:rgba(255,255,255,.35);border-radius:8px}
 .lockbox p{font-size:16px;font-weight:700;color:var(--navy);line-height:1.4}
-.lockbox button{background:var(--green);color:#fff;border:0;border-radius:12px;padding:13px 20px;font:800 16px Pretendard,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(52,182,134,.35)}
+.lockbox button{background:var(--green);color:#fff;border:0;border-radius:6px;padding:13px 20px;font:800 16px Pretendard,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(52,182,134,.35)}
 .lockbox button:hover{background:#2da578}
 .unlocked .lockbox{display:none}
 .bars{display:flex;align-items:flex-end;gap:5px;height:56px;margin-top:10px}
@@ -61,7 +61,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);backgrou
 .pre .big,.pre .chart,.pre .bars,.pre #wP,.pre #wIc,.pre #wWorst,.pre .note{opacity:0}
 .pre .lockbox button{display:none}
 .note{font-size:13px;color:#8a96b5;line-height:1.7;margin-top:18px}
-.jw-form{display:none;max-width:600px;margin:40px auto 0;background:#fff;border-radius:20px;padding:32px;border:1px solid var(--line)}
+.jw-form{display:none;max-width:600px;margin:40px auto 0;background:#fff;border-radius:8px;padding:32px;border:1px solid var(--line)}
 @media(max-width:900px){.jw-top{grid-template-columns:1fr}.wg{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.wg{grid-template-columns:1fr}.wide{grid-column:auto}.tag{padding:5px 9px;font-size:10px}.tag b{font-size:15px}}
 .jw-form{display:none;max-width:600px;margin:56px auto 0}
