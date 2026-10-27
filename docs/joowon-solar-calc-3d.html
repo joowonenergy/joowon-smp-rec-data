@@ -1,0 +1,314 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공장 지붕 태양광 발전량 계산기 | 주원에너지</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--navy:#132E80;--green:#34B686;--ink:#1b2333;--sub:#5b6577;--line:#e3e8f0;--bg:#f4f7fc;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,sans-serif;color:var(--ink);background:var(--bg);word-break:keep-all;line-height:1.5}
+.jw{max-width:1120px;margin:0 auto;padding:36px 20px 48px}
+.jw-eyebrow{font-size:15px;font-weight:800;color:var(--green)}
+.jw-h1{font-size:clamp(28px,3.5vw,38px);font-weight:800;color:var(--navy);line-height:1.3;margin:6px 0 4px}
+.jw-lead{font-size:18px;color:var(--sub)}
+.jw-ctl{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 18px}
+.jw-ctl label{background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 14px;font-size:13px;font-weight:600;color:#7a88aa;flex:1 1 130px;min-width:120px}
+.jw-ctl select,.jw-ctl input{display:block;width:100%;border:0;font:700 16px Pretendard,sans-serif;color:var(--navy);background:none;outline:0;padding:2px 0}
+.jw-ctl input{-moz-appearance:textfield}.jw-ctl input::-webkit-outer-spin-button,.jw-ctl input::-webkit-inner-spin-button{-webkit-appearance:none}
+.jw-ctl button{background:var(--navy);color:#fff;border:0;border-radius:14px;padding:0 30px;font:800 17px Pretendard,sans-serif;cursor:pointer;min-height:56px}
+.jw-ctl button:hover{background:#0d2160}
+.jw-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 4px 18px rgba(19,46,128,.05);position:relative}
+.card h3{font-size:15px;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:8px}
+.card h3 i{width:26px;height:26px;border-radius:8px;background:#eef2fb;display:grid;place-items:center;font-style:normal;font-size:14px}
+.big{font-size:34px;font-weight:800;color:var(--navy);margin:10px 0 2px;white-space:nowrap}.big small{font-size:16px;font-weight:700;color:#8a96b5;margin-left:3px}
+.cap{font-size:13px;color:#8a96b5;font-weight:600}
+/* stage */
+.stage-card{padding:0;overflow:hidden;background:linear-gradient(180deg,#fff 0,#f6f9ff 100%)}
+.stage-card h3{position:absolute;left:20px;top:18px;z-index:3}
+.stage{position:relative;margin:30px auto 0;max-width:760px;aspect-ratio:1019/595}
+.sh{position:absolute;inset:0;filter:blur(20px)}.sh i{position:absolute;inset:0;background:rgba(19,46,128,.24);clip-path:polygon(40.2% 0,100% 58.8%,59.8% 99.6%,0 40.8%);transform:translateY(4%)}
+.sh.s2{filter:blur(6px)}.sh.s2 i{background:rgba(19,46,128,.2);transform:translateY(1.8%)}
+#stage3d{position:absolute;inset:0}#stage3d canvas{position:absolute;inset:0;width:100%;height:100%}
+.tag{position:absolute;background:#fff;border-radius:14px;padding:8px 14px;box-shadow:0 8px 24px rgba(19,46,128,.14);font-size:13px;color:#5b6a8f;font-weight:600;opacity:0;transform:translateY(12px) scale(.92);transition:opacity .45s,transform .45s cubic-bezier(.2,.9,.3,1.3);z-index:2}
+.tag.on{opacity:1;transform:none}
+.tag b{display:block;font-size:21px;color:var(--navy);font-weight:800;white-space:nowrap}.tag b i{font-style:normal}
+.tag:after{content:'';position:absolute;width:2px;height:26px;background:#9db0dd;left:50%;top:100%}
+.tag.lock b{filter:blur(6px);user-select:none}
+.hint{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:8px 18px;border-radius:99px;font-size:14px;font-weight:700;transition:.3s;white-space:nowrap}
+.hint.off{opacity:0}
+/* money (locked) */
+.money{display:flex;flex-direction:column;gap:14px}
+.money .row{border-top:1px solid var(--line);padding-top:12px}.money .row:first-of-type{border:0;padding:0}
+.money .big{font-size:30px;margin:4px 0 0}
+.lockwrap{position:relative;flex:1;display:flex;flex-direction:column;gap:14px}.money>.row{border-top:1px solid var(--line);padding-top:12px}
+.blurme{filter:blur(9px);user-select:none;pointer-events:none;transition:filter .6s}
+.unlocked .blurme,.unlocked .tag.lock b{filter:none;user-select:auto}
+.lockbox{position:absolute;inset:-6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;z-index:4;background:rgba(255,255,255,.35);border-radius:16px}
+.lockbox p{font-size:16px;font-weight:700;color:var(--navy);line-height:1.4}
+.lockbox button{background:var(--green);color:#fff;border:0;border-radius:12px;padding:13px 20px;font:800 16px Pretendard,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(52,182,134,.35)}
+.lockbox button:hover{background:#2da578}
+.unlocked .lockbox{display:none}
+.bars{display:flex;align-items:flex-end;gap:5px;height:56px;margin-top:10px}
+.bars span{flex:1;background:#c9d4f3;border-radius:4px 4px 0 0}
+/* widgets */
+.wg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:16px}
+.wide{grid-column:span 2}
+.chart{display:flex;align-items:flex-end;gap:6px;height:84px;margin-top:12px}
+.chart div{flex:1;text-align:center;font-size:11px;color:#8a96b5;font-weight:600;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.chart i{display:block;background:linear-gradient(180deg,#8fa6ea,#c9d4f3);border-radius:5px 5px 0 0;margin-bottom:4px}
+.chart div.pk i{background:linear-gradient(180deg,var(--navy),#6f8be0)}
+.ring{width:84px;height:84px;margin-top:8px}
+.note{font-size:13px;color:#8a96b5;line-height:1.7;margin-top:18px}
+.jw-form{display:none;max-width:600px;margin:40px auto 0;background:#fff;border-radius:20px;padding:32px;border:1px solid var(--line)}
+@media(max-width:900px){.jw-top{grid-template-columns:1fr}.wg{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.wg{grid-template-columns:1fr}.wide{grid-column:auto}.tag{padding:5px 9px;font-size:10px}.tag b{font-size:15px}}
+.jw-form{display:none;max-width:600px;margin:56px auto 0}
+.jw-form.open{display:block}
+.jw-f-head{text-align:center;margin-bottom:28px}
+.jw-f-head .jw-lead{max-width:none}
+.jw-f-bar{width:32px;height:3px;background:var(--green);margin:0 auto 18px}
+.jw-f-sum{background:#eefaf5;border:1px solid #cdeee0;border-radius:12px;padding:16px 18px;margin-bottom:24px;font-size:16px;line-height:1.7;color:var(--ink)}
+.jw-f-sum b{color:var(--navy)}
+.jw-f-body{display:flex;flex-direction:column;gap:20px}
+.jw-f-row{display:flex;flex-direction:column;gap:8px}
+.jw-f-label{font-size:16px;font-weight:700;color:#111}
+.jw-f-input{width:100%;height:auto;padding:13px 14px;border:1.5px solid #cfd4e0;border-radius:8px;font:inherit;font-size:16px;font-weight:400;color:#111;background:#fff}
+.jw-f-input::placeholder{color:#999}
+.jw-f-input:focus{outline:none;border-color:var(--green)}
+.jw-f-ta{min-height:120px;resize:vertical}
+.jw-f-submit{margin-top:8px;padding:16px;background:var(--navy);color:#fff;font:inherit;font-size:16px;font-weight:700;border:0;border-radius:8px;cursor:pointer}
+.jw-f-submit:hover{background:#0f2568}
+.jw-f-submit:disabled{opacity:.6;cursor:not-allowed}
+.jw-f-result{text-align:center;font-size:13px;font-weight:600;margin:4px 0 0;min-height:20px}
+.jw-f-result.success{color:var(--green)}
+.jw-f-result.error{color:#e0453c}
+.jw-f-notice{text-align:center;font-size:13px;color:#999;margin:6px 0 0;line-height:1.5}
+.jw-eyebrow.f{margin-bottom:6px}
+</style></head><body><div class="jw">
+<div class="jw-eyebrow">SOLAR CALCULATOR · 공장·창고 지붕 기준</div>
+<h1 class="jw-h1">우리 공장 지붕, 얼마나 벌까?</h1><p class="jw-lead">지역과 면적만 고르면 바로 계산돼요</p>
+<div class="jw-ctl">
+ <label>시·도<select id="region"></select></label>
+ <label>시·군·구<select id="city"></select></label>
+ <label>지붕 면적 (평)<input id="area" type="number" min="1" value="1000" inputmode="numeric"></label>
+ <label>사용 방식<select id="mode"><option value="rps">전량 판매 · 기존 RPS</option><option value="sell">전량 판매 · 2027년 이후 계약시장</option><option value="self">자가소비</option></select></label>
+ <button id="go">계산하기</button>
+</div>
+
+<div class="jw-top">
+ <div class="card stage-card"><h3><i>🏭</i>우리 공장 지붕</h3>
+  <div class="stage"><div class="sh"><i></i></div><div class="sh s2"><i></i></div><div id="stage3d"></div>
+   <div class="tag" style="left:24%;top:17%">연 발전량<b><i id="tA">0</i> MWh</b></div>
+   <div class="tag" style="left:56%;top:9%">설치 용량<b><i id="tK">0</i> kW</b></div>
+   <div class="tag" style="left:74%;top:40%">20년 수익<b>약 <i id="t20">0</i></b></div>
+   <div class="hint" id="hint">계산하기를 눌러보세요</div></div></div>
+ <div class="card money"><h3><i>💰</i><span id="mTitle">예상 수익</span></h3>
+  <div class="lockwrap">
+   <div class="blurme"><div class="cap" id="lY">연 판매 수익</div><div class="big" id="vY">6,800<small>만원</small></div></div>
+   <div class="blurme row"><div class="cap">월 평균</div><div class="big" id="vM">570<small>만원</small></div><div class="bars" id="mbars"></div></div>
+   <div class="lockbox"><p>연·월 상세 수익은<br>무료 구조검토 후 안내드려요</p><button id="unlock">무료 구조검토 받아보기</button></div>
+  </div>
+  <div class="row"><div class="cap" id="l20">20년 합계</div><div class="big" id="v20" style="color:#1f9c6c">13.6<small>억원</small></div></div>
+  </div>
+</div>
+
+<div class="wg">
+ <div class="card wide"><h3><i>⚡</i>월별 예상 발전량</h3><div class="big"><span id="wA">0</span><small>MWh / 년</small></div><div class="chart" id="chart"></div></div>
+ <div class="card"><h3><i>🔌</i>설치 규모</h3><div class="big"><span id="wK">0</span><small>kW</small></div><div class="cap" id="wP">지붕 면적 기준</div></div>
+ <div class="card"><h3><i>☀️</i>하루 발전 시간</h3><div class="big"><span id="wH">0</span><small>시간</small></div><div class="cap">1kW당 하루 평균 발전 시간</div></div>
+ <div class="card"><h3><i>🌤</i>우리 지역 일사량</h3><div class="big"><span id="wI">0</span><small>kWh/㎡·일</small></div><div class="cap" id="wIc">연평균 (경사 30°)</div></div>
+ <div class="card"><h3><i>🌳</i>심은 나무 효과</h3><div class="big"><span id="wT">0</span><small>그루</small></div><div class="cap">1년간 심은 나무와 같은 CO₂ 감축</div></div>
+ <div class="card wide"><h3><i>📅</i>가장 많이 / 적게 나오는 달</h3><div class="big"><span id="wBest">-</span><small id="wBestS"></small></div><div class="cap" id="wWorst">-</div></div>
+</div>
+<p class="note" id="note"></p>
+  <div class="jw-form" id="jwForm">
+    <div class="jw-f-head">
+      <div class="jw-f-bar"></div>
+      <div class="jw-eyebrow">CONTACT US · 무료 구조검토 신청</div>
+      <h2 class="jw-h1" style="margin-bottom:10px">계산 결과 그대로,<br>전문 상담을 받아보세요</h2>
+      <p class="jw-lead" style="margin:0 auto">전문 상담원이 확인 후 빠르게 연락드리겠습니다</p>
+    </div>
+
+    <div class="jw-f-sum" id="fSum"></div>
+
+    <div class="jw-f-body">
+      <div class="jw-f-row"><label class="jw-f-label" for="fName">이름 *</label><input class="jw-f-input" type="text" id="fName" placeholder="이름을 입력해주세요"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fPhone">연락처 *</label><input class="jw-f-input" type="tel" id="fPhone" placeholder="010-0000-0000"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fEmail">이메일</label><input class="jw-f-input" type="email" id="fEmail" placeholder="선택 입력"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fRegion">설치 희망 지역 *</label><input class="jw-f-input" type="text" id="fRegion" placeholder="예) 경남 김해시"></div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fType">설치 유형 *</label>
+        <select class="jw-f-input" id="fType">
+          <option value="">선택해주세요</option>
+          <option value="주택">주택</option>
+          <option value="건물·공장·창고" selected>건물·공장·창고</option>
+          <option value="농지·기타">농지·기타</option>
+        </select>
+      </div>
+      <div class="jw-f-row"><label class="jw-f-label" for="fMsg">문의 내용 *</label><textarea class="jw-f-input jw-f-ta" id="fMsg" placeholder="문의하실 내용을 자유롭게 남겨주세요"></textarea></div>
+      <button class="jw-f-submit" type="button" id="fSubmit">문의 접수하기</button>
+      <p class="jw-f-result" id="fResult"></p>
+      <p class="jw-f-notice">개인정보는 상담 목적으로만 사용되며, 상담 완료 후 안전하게 폐기됩니다.</p>
+    </div>
+  </div>
+</div>
+<script>
+let IRR=null;const DAYS=[31,28,31,30,31,30,31,31,30,31,30,31];const PR=0.83,PY_PER_KW=3;
+const $=id=>document.getElementById(id);const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const PM={rps:{p:215,y:'연 판매 수익',t:'20년 판매 수익',n:'SMP 약 108원 + REC 약 71원 × 가중치 1.5(건물 지붕 기준), 2026년 10월 기준 가정 단가 215원/kWh'},sell:{p:147,y:'연 판매 수익',t:'20년 판매 수익',n:'2026년 1차 고정가격계약 평균 낙찰가 약 147원/kWh 기준 (2027년 이후는 경쟁입찰이라 달라질 수 있어요)'},self:{p:150,y:'연 전기요금 절감',t:'20년 절감 합계',n:'전기요금 절감 단가 150원/kWh 가정'}};
+let last=null,autoRegion='';
+let mon=function(v){const e=v/1e4;return e>=1e4?[(e/1e4).toFixed(1),'억원']:[fmt(e),'만원']};
+function fillCity(def){const n=Object.keys(IRR[$('region').value]).sort((a,b)=>a.localeCompare(b,'ko'));$('city').innerHTML=n.map(c=>`<option${c===def?' selected':''}>${c}</option>`).join('')}
+function compute(){
+ const py=Math.max(1,parseFloat($('area').value)||0),kw=Math.max(1,py/PY_PER_KW);
+ const ser=IRR[$('region').value][$('city').value].t30,m=ser.map((h,i)=>kw*h*DAYS[i]*PR),y=m.reduce((a,b)=>a+b,0);
+ const p=PM[$('mode').value],won=y*p.p;
+ last={py,kw,m,y,won,p,ser,region:$('region').value,city:$('city').value,mode:$('mode').value};return last}
+function render(){
+ const r=last,mx=Math.max(...r.m),best=r.m.indexOf(mx),worst=r.m.indexOf(Math.min(...r.m));
+ $('tA').textContent=fmt(r.y/1000);$('tK').textContent=fmt(r.kw);
+ const w20=mon(r.won*20);$('t20').textContent=w20[0]+w20[1];
+ const [a,au]=mon(r.won),[b,bu]=mon(r.won/12),[c,cu]=w20;
+ $('mTitle').textContent=r.mode==='self'?'예상 절감액':'예상 수익';$('lY').textContent=r.p.y;$('l20').textContent=r.p.t;
+ $('vY').innerHTML=a+'<small>'+au+'</small>';$('vM').innerHTML=b+'<small>'+bu+'</small>';$('v20').innerHTML=c+'<small>'+cu+'</small>';
+ $('mbars').innerHTML=r.m.map(v=>`<span style="height:${(v/mx*100).toFixed(0)}%"></span>`).join('');
+ $('wA').textContent=fmt(r.y/1000);$('wK').textContent=fmt(r.kw);$('wP').textContent=`지붕 ${fmt(r.py)}평 기준 (1kW ≈ ${PY_PER_KW}평 가정)`;
+ $('wH').textContent=(r.y/r.kw/365).toFixed(1);
+ $('wI').textContent=(r.ser.reduce((x,z,i)=>x+z*DAYS[i],0)/365).toFixed(2);$('wIc').textContent=`${r.city} 연평균 (경사 30°)`;
+ $('wT').textContent=fmt(r.y*0.4173/7.37);
+ $('chart').innerHTML=r.m.map((v,i)=>`<div class="${i===best?'pk':''}" title="${i+1}월 ${fmt(v)}kWh"><i style="height:${(v/mx*70).toFixed(0)}px"></i>${i+1}월</div>`).join('');
+ $('wBest').textContent=(best+1)+'월';$('wBestS').textContent=` 약 ${fmt(r.m[best]/1000)}MWh`;$('wWorst').textContent=`가장 적은 달: ${worst+1}월 약 ${fmt(r.m[worst]/1000)}MWh`;
+ $('note').innerHTML=`※ 참고용 예상치이며 지붕 방향·경사·음영·설비 조건에 따라 달라질 수 있어요. 지붕 면적 ${fmt(r.py)}평은 약 ${fmt(r.kw)}kW로 환산했어요.<br>※ 계산 기준: 시·군·구별 월평균 일사량(경사 30° 남향 환산, 한국에너지기술연구원 신재생자원지도 천리안1호 2012~2019년 평균) × 설치 용량 × 시스템 효율 83%.<br>※ 적용 단가: ${r.p.n}.<br>※ CO₂·나무: 전력배출계수 0.4173kgCO₂eq/kWh, 나무 1그루 연 7.37kg 흡수 기준.`;
+}
+/* 3D 모션: Three.js 모듈이 window.F 를 만든다 */
+const tags=[...document.querySelectorAll('.tag')];
+function playOnce(){tags.forEach(t=>t.classList.remove('on'));$('hint').classList.add('off');
+ const done=()=>tags.forEach((t,k)=>setTimeout(()=>t.classList.add('on'),k*220));
+ if(window.F&&F.ok)F.play(done);else done()}
+function go(){compute();render();playOnce();sendHeight()}
+$('go').addEventListener('click',go);
+['area'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')go()}));
+$('region').addEventListener('change',()=>fillCity());
+$('unlock').addEventListener('click',()=>{const f=$('jwForm');f.style.display='block';$('fMsg').value=$('fMsg').value||'위 계산 결과로 무료 구조검토를 받고 싶어요.';refreshForm();setTimeout(()=>{f.scrollIntoView({behavior:'smooth',block:'start'});sendHeight()},50)});
+function summaryText(){if(!last)return '';return `지역 ${last.region} ${last.city} · 지붕 면적 약 ${fmt(last.py)}평(약 ${fmt(last.kw)}kW) · 경사각 30° · 예상 연 발전량 약 ${fmt(last.y)}kWh · ${last.mode==='self'?'자가소비':last.mode==='rps'?'전량 판매(기존 RPS)':'전량 판매(2027년 이후 계약시장)'}`}
+const SHORT={'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천','광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종','경기도':'경기','강원특별자치도':'강원','충청북도':'충북','충청남도':'충남','전북특별자치도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'};
+function refreshForm(){if(!last)return;$('fSum').innerHTML=`<b>계산 결과가 함께 접수돼요</b><br>${summaryText()}`;const auto=`${SHORT[last.region]||last.region} ${last.city}`;if($('fRegion').value===''||$('fRegion').value===autoRegion){$('fRegion').value=auto;autoRegion=auto}}
+$('fSubmit').addEventListener('click',()=>{
+  const v=id=>$(id).value.trim(), res=$('fResult'), btn=$('fSubmit');
+  if(!v('fName')||!v('fPhone')||!v('fRegion')||!v('fType')||!v('fMsg')){res.textContent='필수 항목(*)을 모두 입력해주세요.';res.className='jw-f-result error';return}
+  const fd=new FormData();
+  fd.append('이름',v('fName'));fd.append('연락처',v('fPhone'));fd.append('이메일',v('fEmail'));
+  fd.append('설치_희망_지역',v('fRegion'));fd.append('설치_유형',v('fType'));fd.append('문의_내용',v('fMsg'));
+  fd.append('발전량_계산_결과',summaryText());
+  fd.append('_subject','[주원에너지] 발전량 계산기를 통해 문의가 접수되었습니다');
+  fd.append('_captcha','false');fd.append('_template','table');
+  btn.disabled=true;btn.textContent='전송 중...';res.textContent='';res.className='jw-f-result';
+  fetch('https://formsubmit.co/ajax/ds8059@naver.com',{method:'POST',headers:{'Accept':'application/json'},body:fd})
+   .then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+   .then(()=>{res.textContent='문의가 정상적으로 접수되었습니다. 빠르게 연락드리겠습니다.';res.className='jw-f-result success';document.body.classList.add('unlocked');['fName','fPhone','fEmail','fMsg'].forEach(id=>$(id).value='')})
+   .catch(()=>{res.textContent='전송에 실패했습니다. 잠시 후 다시 시도해주세요.';res.className='jw-f-result error'})
+   .finally(()=>{btn.disabled=false;btn.textContent='문의 접수하기';sendHeight()});
+});
+
+function sendHeight(){try{parent.postMessage({type:'jw-calc-height',height:document.documentElement.scrollHeight},'*')}catch(e){}}
+if(window.ResizeObserver)new ResizeObserver(sendHeight).observe(document.body);
+(async function(){try{const r=await fetch('irr_sigungu.json');IRR=await r.json()}catch(e){document.querySelector('.jw').insertAdjacentHTML('afterbegin','<p style="color:#e0453c;font-weight:600">데이터를 불러오지 못했어요.</p>');return}
+ $('region').innerHTML=Object.keys(IRR).map(r=>`<option${r==='경상남도'?' selected':''}>${r}</option>`).join('');fillCity('김해시');
+ compute();render()})();
+</script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js';
+try{
+const host=document.getElementById('stage3d');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+host.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const W=1600,H=1000,aspect=W/H, vs=50;
+const cam=new THREE.OrthographicCamera(-vs*aspect,vs*aspect,vs,-vs,-300,600);
+cam.position.set(90,90,90);cam.lookAt(0,2,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0xcdd6ea,1.0));
+const sun=new THREE.DirectionalLight(0xfff4e0,2.1);
+sun.position.set(-40,70,50);sun.castShadow=true;
+sun.shadow.mapSize.set(innerWidth<700?2048:4096,innerWidth<700?2048:4096);const sc=sun.shadow.camera;sc.left=-75;sc.right=75;sc.top=75;sc.bottom=-75;sc.near=1;sc.far=250;
+sun.shadow.radius=5;sun.shadow.bias=-0.0004;scene.add(sun);
+const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:0,...o});
+function box(w,h,d,mat,x,y,z,cast=true,recv=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=recv;scene.add(m);return m}
+// 부지(떠 있는 판)
+box(86,1.4,58,M(0xffffff),0,-0.7,0,false,true);
+box(86,0.5,58,M(0xcfd9ee),0,-1.65,0,false,false);
+// 포장 마당
+box(70,0.12,17,M(0xdfe5f1),0,0.06,18,false,true);
+for(let i=-6;i<=6;i++)box(0.25,0.05,5,M(0xffffff),i*5,0.13,22,false,true);
+// 그림자 받는 투명 바닥
+const sh=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({opacity:.16}));sh.rotation.x=-Math.PI/2;sh.position.y=-1.9;sh.receiveShadow=true;scene.add(sh);
+// 공장 본체
+const FW=44,FD=22,WH=7.2,RH=4.2;
+box(FW,2.6,FD,M(0x2d4fa3),0,1.3,0);               // 아래 파란 외벽
+box(FW,WH-2.6,FD,M(0xe9eef7),0,2.6+(WH-2.6)/2,0); // 위 밝은 외벽
+box(FW+0.4,0.35,FD+0.4,M(0xffffff),0,2.6,0);       // 띠
+// 창문 (앞 +z 면)
+const win=M(0xfff3cf,{emissive:0xffcf6b,emissiveIntensity:.55,roughness:.3});
+for(let i=-8;i<=8;i++)box(1.8,1.1,0.12,win,i*2.4,5.0,FD/2+0.05,false,false);
+for(let i=-5;i<=5;i++)box(2.6,1.9,0.12,M(0xaecbee,{roughness:.25,metalness:.2}),i*3.6,1.4,FD/2+0.06,false,false);
+// 셔터 문
+for(const x of [-12,0,12])box(6,4.2,0.14,M(0xb8c4dc),x,2.1,FD/2+0.08,false,false);
+// 지붕 (박공)
+const ang=Math.atan2(RH,FD/2), L=Math.hypot(FD/2,RH)+0.9;
+const roofM=M(0xb9c5dd,{roughness:.6,metalness:.1});
+for(const s of [1,-1]){
+  const r=box(FW+1.6,0.45,L,roofM,0,WH+RH/2+0.15,s*(FD/4)+0*s);
+  r.rotation.x=s*ang; r.position.z=s*FD/4; r.position.y=WH+RH/2+0.05;
+}
+// 박공 삼각 벽
+const tri=new THREE.Shape();tri.moveTo(-FD/2,0);tri.lineTo(FD/2,0);tri.lineTo(0,RH);tri.lineTo(-FD/2,0);
+for(const s of [1,-1]){const g=new THREE.Mesh(new THREE.ExtrudeGeometry(tri,{depth:0.4,bevelEnabled:false}),M(0xe9eef7));g.rotation.y=Math.PI/2;g.position.set(s*(FW/2-0.2)+(s>0?0:0.2),WH,0);g.castShadow=true;g.receiveShadow=true;scene.add(g)}
+// 태양광 패널 (양쪽 지붕)
+const pm=M(0x13276b,{roughness:.35,metalness:.55}), fm=M(0xe5ebf6,{roughness:.5});
+const PANELS=[];const cols=19,rows=7,pw=2.1,ph=1.25;
+for(const s of [1,-1]){
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const gx=(c-(cols-1)/2)*(pw+0.12);
+    const along=1.3+r*(ph+0.12);   // 지붕면을 따라 처마 쪽에서 위로
+    const gp=new THREE.Group();
+    const fr=new THREE.Mesh(new THREE.BoxGeometry(pw,0.1,ph),fm);fr.castShadow=true;fr.receiveShadow=true;gp.add(fr);
+    const cm=pm.clone();PANELS.push({m:cm,g:gp,o:(r*cols+c)*2+(s>0?0:1)});const cell=new THREE.Mesh(new THREE.BoxGeometry(pw-0.14,0.06,ph-0.14),cm);cell.position.y=0.06;cell.receiveShadow=true;gp.add(cell);
+    // 지붕면 좌표: 처마(z=±FD/2)에서 능선(z=0)으로
+    const t=(along)/Math.hypot(FD/2,RH);
+    const z=s*(FD/2-(FD/2)*t*0.98), y=WH+RH*t*0.98+0.55;
+    gp.position.set(gx,y,z);gp.rotation.x=s*ang;gp.rotation.x=s*ang;
+    scene.add(gp);
+  }
+}
+// 부속 사무동
+box(12,6,13,M(0xf6f8fc),FW/2+9,3,-3);
+box(12.4,0.5,13.4,M(0xdfe5f2),FW/2+9,6.2,-3);
+box(0.15,2.2,10,M(0x9fc2ea,{roughness:.2,metalness:.3}),FW/2+3.0,3.4,-3,false,false);
+for(let i=0;i<4;i++)box(2,1.4,0.15,win,FW/2+9-3.6+i*2.4,3.4,3.58,false,false);
+// 전신주 + 선
+function pole(x,z){box(0.5,13,0.5,M(0xa7b0c4),x,6.5,z);box(5,0.35,0.35,M(0x8f99ae),x,12.3,z);}
+pole(-34,26);pole(-34,-8);
+box(0.12,0.12,34,M(0x6f7a92),-34.8,12.3,9,false,false);box(0.12,0.12,34,M(0x6f7a92),-33.2,12.3,9,false,false);
+// 변압기
+box(2.2,2.4,1.8,M(0xcdd6e8),-30,1.2,22);box(2.4,0.3,2,M(0xb4bfd6),-30,2.5,22);
+// 나무
+function tree(x,z,s=1){box(0.4*s,2.2*s,0.4*s,M(0x8a6a56),x,1.1*s,z);
+ const c=new THREE.Mesh(new THREE.SphereGeometry(2.2*s,24,18),M(0x7cc3a0,{roughness:.9}));c.position.set(x,3.4*s,z);c.castShadow=true;c.receiveShadow=true;scene.add(c);
+ const c2=new THREE.Mesh(new THREE.SphereGeometry(1.5*s,20,14),M(0x92d0b0,{roughness:.9}));c2.position.set(x+0.9*s,4.5*s,z-0.5*s);c2.castShadow=true;scene.add(c2);}
+tree(-24,-23,1.1);tree(-30,-18,0.9);tree(36,24,1);tree(40,19,0.8);tree(-38,16,1.0);tree(28,-25,0.9);
+// 승용차 (작게)
+function car(x,z,c){box(4.4,0.9,1.8,M(c),x,0.55,z);box(2.3,0.8,1.6,M(0xd8e2f3,{roughness:.2,metalness:.2}),x-0.2,1.35,z);}
+car(-16,16,0x2d4fa3);car(-8,16,0xf2f4f8);car(12,16,0x34B686);car(20,16,0xcfd6e4);
+const winMats=[win];
+const TOT=PANELS.length;let cur=0;
+for(const p of PANELS)p.y=p.g.position.y;
+function draw(t){cur=t;
+ for(const p of PANELS){const st=(p.o/(2*19*7))*0.62,d=0.38;const u=Math.min(1,Math.max(0,(t-st)/d));const e=1-Math.pow(1-u,3);
+  p.g.visible=u>0;p.g.position.y=p.y+(1-e)*9;const sc2=0.7+0.3*e;p.g.scale.set(sc2,sc2,sc2)}
+ renderer.render(scene,cam)}
+function fit(){const w=host.clientWidth||1019,h=host.clientHeight||595;renderer.setSize(w,h,false);cam.setViewOffset(W,H,291,227,1019,595);cam.updateProjectionMatrix();draw(cur)}
+fit();addEventListener('resize',fit);
+window.F={ok:true,play(done){const t0=performance.now(),D=1700;(function f(n){const k=Math.min(1,(n-t0)/D);draw(k);if(k<1)requestAnimationFrame(f);else if(done)done()})(t0)}};
+}catch(e){window.F={ok:false}}
+</script></body></html>
