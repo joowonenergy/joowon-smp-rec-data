@@ -106,7 +106,13 @@ select:focus,input:focus{outline:none;border-color:var(--navy)}
 .jw-tilt-cta{display:block;text-align:center;margin-top:8px;font-size:16px;font-weight:700;color:#1f8f66;text-decoration:none}
 .jw-tilt-cta:hover{text-decoration:underline}
 .jw-pnote{font-size:13px;font-weight:500;color:var(--sub);line-height:1.6;margin-top:8px}
+.jw-tilt-wide{margin-top:24px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:32px;align-items:center}
+.jw-tilt-wide .jw-tilt-main,.jw-tilt-wide .jw-tilt-sub,.jw-tilt-wide .jw-tilt-note{text-align:left}
+.jw-tilt-wide .jw-tilt-cta{text-align:left}
+.jw-tilt-wide svg{width:100%;height:auto;display:block}
+@media(max-width:820px){.jw-tilt-wide{grid-template-columns:1fr;gap:16px}}
 .jw-pnote[hidden]{display:none}
+.jw-note-wide{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
 .jw-seg2{grid-template-columns:1fr 1fr;margin-bottom:10px}
 .jw-seg2 button{min-height:40px;font-size:14px}
 input[hidden]{display:none}
@@ -116,7 +122,7 @@ input[hidden]{display:none}
 <section class="jw-calc">
   <div class="jw-eyebrow">SOLAR CALCULATOR</div>
   <h1 class="jw-h1">우리 지붕, 태양광으로<br>얼마나 발전할까요?</h1>
-  <p class="jw-lead">지역과 설치 용량만 입력하면 월별 예상 발전량을 바로 확인할 수 있어요.</p>
+  <p class="jw-lead">지역과 지붕 면적만 입력하면 월별 예상 발전량을 바로 확인할 수 있어요.</p>
   <span class="jw-draft">2012~2019년 평균 일사량 기준 · 참고용 예상치</span>
 
   <div class="jw-grid">
@@ -168,14 +174,6 @@ input[hidden]{display:none}
 
       <button class="jw-btn" id="go" type="button">발전량 계산하기</button>
 
-      <div class="jw-tilt" id="jwTilt">
-        <svg id="tiltSvg" viewBox="0 0 340 230" role="img" aria-label="설치 경사각 그림"></svg>
-        <div class="jw-tilt-cmp" id="tiltCmp"></div>
-        <p class="jw-tilt-main" id="tiltMain"></p>
-        <p class="jw-tilt-sub" id="tiltSub"></p>
-        <p class="jw-tilt-note">※ 그림자가 없는 정남향 기준이에요. 실제 경사각은 지붕 구조, 주변 건물 그림자, 패널 간격에 따라 달라져요.</p>
-        <a href="#" class="jw-tilt-cta" id="tiltCta">무료 구조검토 확인 →</a>
-      </div>
     </div>
 
     <div class="jw-card jw-result" id="res">
@@ -185,13 +183,14 @@ input[hidden]{display:none}
 
       <div class="jw-kpis">
         <div class="jw-kpi"><b>월 평균 발전량</b><strong id="mAvg">-</strong></div>
-        <div class="jw-kpi"><b id="moneyLabel">연 전기요금 절감 (참고)</b><strong id="money">-</strong></div>
+        <div class="jw-kpi"><b id="moneyLabel">연 절감액</b><strong id="money">-</strong></div>
         <div class="jw-kpi jw-eco">
-          <div><b>연간 CO₂ 감축량</b><strong id="co2">-</strong></div>
-          <div><b>나무가 1년간 흡수하는 양과 같아요</b><strong id="trees">-</strong></div>
+          <div><b>CO₂ 감축 (1년)</b><strong id="co2">-</strong></div>
+          <div><b>나무 심은 효과 (1년)</b><strong id="trees">-</strong></div>
         </div>
       </div>
 
+      <div class="jw-kpis" style="margin:0 0 22px"><div class="jw-kpi"><b>20년 발전량</b><strong id="y20">-</strong></div><div class="jw-kpi"><b id="y20Label">20년 절감액 (현재 요금 기준)</b><strong id="y20m">-</strong></div></div>
       <div class="jw-h2" style="font-size:16px;margin-bottom:0">월별 예상 발전량</div>
       <div class="jw-chart" id="chart"></div>
 
@@ -199,14 +198,21 @@ input[hidden]{display:none}
         <p>우리 지붕 정확한 수치가 궁금하다면?<small>지붕 구조와 주변 조건을 반영한 무료 구조검토를 받아보세요.</small></p>
         <button type="button" id="cta">무료 구조검토 확인</button>
       </div>
-
-      <p class="jw-note">
-        ※ 참고용 예상치이며, 지붕 방향·경사·음영·설비 조건에 따라 실제 발전량은 달라질 수 있어요.<br>
-        ※ 계산 기준: 시·군·구별 월평균 일사량(남향 경사면 환산) × 설치 용량 × 시스템 효율 78~88%.<br>※ 일사량 출처: 한국에너지기술연구원 신재생자원지도(천리안1호 위성, 2012~2019년 월평균).<br>
-        ※ CO₂ 감축량: 발전량 × 전력배출계수 0.4173kgCO₂eq/kWh(2023년도, 기후에너지환경부 공표). 나무 그루 수는 국립공원 수목 84종 평균 흡수량 연 7.37kg/그루(국립공원공단 조사) 기준이에요.<br>※ 단가는 가정값이며 실제 계약·요금 조건에 따라 달라져요.
-      </p>
     </div>
   </div>
+  <section class="jw-card jw-tilt-wide" id="jwTilt">
+    <div class="jw-tw-fig">
+        <svg id="tiltSvg" viewBox="0 0 340 230" role="img" aria-label="설치 경사각 그림"></svg>
+    </div>
+    <div class="jw-tw-info">
+      <h2 class="jw-h2" style="margin-bottom:6px">경사각에 따라 발전량이 달라져요</h2>
+        <div class="jw-tilt-cmp" id="tiltCmp"></div>
+        <p class="jw-tilt-main" id="tiltMain"></p>
+        <p class="jw-tilt-sub" id="tiltSub"></p>
+        <p class="jw-tilt-note">※ 그림자가 없는 정남향 기준이에요. 실제 경사각은 지붕 구조, 주변 건물 그림자, 패널 간격에 따라 달라져요.</p>
+        <a href="#" class="jw-tilt-cta" id="tiltCta">무료 구조검토 확인 →</a>
+    </div>
+  </section>
   <section class="jw-y" id="jwY" hidden>
     <div class="jw-y-head">
       <div>
@@ -227,6 +233,12 @@ input[hidden]{display:none}
     </div>
     <p class="jw-note" id="yNote"></p>
   </section>
+
+  <p class="jw-note jw-note-wide">
+        ※ 참고용 예상치이며, 지붕 방향·경사·음영·설비 조건에 따라 실제 발전량은 달라질 수 있어요.<br>
+        ※ 계산 기준: 시·군·구별 월평균 일사량(남향 경사면 환산) × 설치 용량 × 시스템 효율 78~88%.<br>※ 일사량 출처: 한국에너지기술연구원 신재생자원지도(천리안1호 위성, 2012~2019년 월평균).<br>
+        ※ CO₂ 감축량: 발전량 × 전력배출계수 0.4173kgCO₂eq/kWh(2023년도, 기후에너지환경부 공표). 나무 그루 수는 국립공원 수목 84종 평균 흡수량 연 7.37kg/그루(국립공원공단 조사) 기준이에요.<br>※ 20년 누적은 연 값에 20을 곱한 단순 합산이며, 모듈 출력 저하와 단가 변동은 반영하지 않았어요.<br>※ 단가는 가정값이며 실제 계약·요금 조건에 따라 달라져요.
+      </p>
 
   <div class="jw-form" id="jwForm">
     <div class="jw-f-head">
@@ -283,12 +295,13 @@ function calc(){
   $('sizeNote').textContent=unit==='area'?`지붕 ${fmt(areaPy)}평이면 약 ${fmt(kw)}kW 규모로 봐요. 지붕 모양과 패널 배치에 따라 실제 용량은 달라져요. (1kW ≈ ${PY_PER_KW}평 가정)`:`${fmt(kw)}kW는 지붕 약 ${fmt(kw*PY_PER_KW)}평 정도예요. 지붕 모양과 패널 배치에 따라 달라져요. (1kW ≈ ${PY_PER_KW}평 가정)`;
   $('yMid').textContent=fmt(y);
   $('yRange').textContent=`예상 범위 ${fmt(sum(low))} ~ ${fmt(sum(high))} kWh`;
+  $('y20').textContent=`${fmt(sum(low)*20/10000)} ~ ${fmt(sum(high)*20/10000)}만 kWh`;$('y20m').textContent=`${(sum(low)*price*20/1e8).toFixed(1)} ~ ${(sum(high)*price*20/1e8).toFixed(1)}억원`;
   $('mAvg').textContent=fmt(y/12)+' kWh';
   const EF=0.4173, TREE=7.37; /* 전력배출계수 kgCO2eq/kWh(2023년도), 나무 1그루 연간 CO2 흡수량 kg */
   const tLow=sum(low)*EF/1000, tHigh=sum(high)*EF/1000;
-  $('co2').textContent=`약 ${tLow.toFixed(1)} ~ ${tHigh.toFixed(1)}톤`;
-  $('trees').textContent=`약 ${fmt(sum(low)*EF/TREE)} ~ ${fmt(sum(high)*EF/TREE)}그루`;
-  $('money').textContent=`약 ${fmt(sum(low)*price/10000)} ~ ${fmt(sum(high)*price/10000)}만원`;
+  $('co2').textContent=`${tLow.toFixed(1)} ~ ${tHigh.toFixed(1)}톤`;
+  $('trees').textContent=`🌳 ${fmt(sum(low)*EF/TREE)} ~ ${fmt(sum(high)*EF/TREE)}그루`;
+  $('money').textContent=`${fmt(sum(low)*price/10000)} ~ ${fmt(sum(high)*price/10000)}만원`;
   refreshForm();
   renderY();
   tiltViz();
@@ -304,7 +317,7 @@ $('mode').addEventListener('click',e=>{
     rps:['판매 단가 (SMP+REC 합산)','연 판매 수익 (참고)',215,'SMP 약 108원 + REC 약 71원 × 가중치 1.5(공장 지붕 기준)로 계산한 2026년 10월 기준 가정값이에요. SMP·REC 시세와 설치 조건에 따라 달라져요.'],
     sell:['고정가격계약 단가 (2026 기준)','연 판매 수익 (참고)',147,'2026년 1차 고정가격계약 평균 낙찰가(약 146.9원/kWh, 상한가 147.686원)를 기준으로 했어요. 2027년 이후 계약시장은 경쟁입찰로 단가가 정해지고 상한가는 아직 고시 전이라, 실제 단가는 달라질 수 있어요.']
   };
-  const p=PM[mode];$('priceLabel').textContent=p[0];$('moneyLabel').textContent=p[1];$('price').value=p[2];$('priceNote').textContent=p[3];$('priceNote').hidden=!p[3];
+  const p=PM[mode];$('priceLabel').textContent=p[0];$('moneyLabel').textContent=p[1].replace('연 전기요금 절감 (참고)','연 절감액').replace('연 판매 수익 (참고)','연 판매 수익');$('price').value=p[2];$('priceNote').textContent=p[3];$('priceNote').hidden=!p[3];$('y20Label').textContent=mode==='self'?'20년 절감액 (현재 요금 기준)':'20년 판매 수익';
   calc();
 });
 $('go').addEventListener('click',calc);
